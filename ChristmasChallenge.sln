@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29326.143
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChristmasChallenge", "ChristmasChallenge\ChristmasChallenge.csproj", "{38CA60B7-DB8C-4863-8E02-D17F6D8B8D6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdventDay2", "AdventDay2\AdventDay2.csproj", "{FD8C6659-2107-4991-8F67-DF81B87F5959}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38CA60B7-DB8C-4863-8E02-D17F6D8B8D6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38CA60B7-DB8C-4863-8E02-D17F6D8B8D6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38CA60B7-DB8C-4863-8E02-D17F6D8B8D6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38CA60B7-DB8C-4863-8E02-D17F6D8B8D6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD8C6659-2107-4991-8F67-DF81B87F5959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD8C6659-2107-4991-8F67-DF81B87F5959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD8C6659-2107-4991-8F67-DF81B87F5959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD8C6659-2107-4991-8F67-DF81B87F5959}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BE94C4C3-984C-4EEE-AA3F-7CE8E579DDBA}
+	EndGlobalSection
+EndGlobal
