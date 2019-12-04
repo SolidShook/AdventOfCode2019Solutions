@@ -94,10 +94,10 @@ namespace AdventDay3
             float x = (det12 * (x3 - x4) - (x1 - x2) * det34) / den;
             float y = (det12 * (y3 - x4) - (y1 - y2) * det34) / den;
 
-            return new Vector2(x, y);
+            return new Vector2((float)Math.Round(x), (float)Math.Round(y));
         }
 
-        public List<Vector2> CalculateIntersections(List<Line> otherLines)
+        private List<Vector2> CalculateIntersections(List<Line> otherLines)
         {
             List<Vector2> intersections = new List<Vector2>();
 
@@ -114,6 +114,24 @@ namespace AdventDay3
                 }
             }
             return intersections;
+        }
+
+        public int getSmallestMdIntersection(List<Line> otherLines)
+        {
+            int? shortestDistance = null;
+
+            List<Vector2> intersections = CalculateIntersections(otherLines);
+
+            foreach (Vector2 intersection in intersections)
+            {
+                int mhDistance = (int)(Math.Abs(intersection.X) + Math.Abs(intersection.Y));
+
+                if (shortestDistance == null || shortestDistance > mhDistance)
+                {
+                    shortestDistance = mhDistance;
+                }
+            }
+            return (int)shortestDistance;
         }
         public Wire(string[] instructions)
         {
