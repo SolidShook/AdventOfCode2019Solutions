@@ -41,6 +41,33 @@ namespace AdventDay2
             }
         }
 
+        private static int[] SearchAnswers(int[] intCode)
+        {
+
+            int target = 19690720;
+            int answer1 = 0;
+            int answer2 = 0;
+            for (int i = 0; i < 100; i++)
+            {
+                for (int j = 0; j < 100; j++)
+                {
+                    int[] intCodeCopy = new int[intCode.Length];
+                    intCode.CopyTo(intCodeCopy, 0);
+
+                    intCodeCopy[1] = i;
+                    intCodeCopy[2] = j;
+
+                    if (ProcessIntCode(intCodeCopy, 0) == target)
+                    {
+                        answer1 = i;
+                        answer2 = j;
+                    }
+                }
+            }
+
+            return new int[] {answer1, answer2};
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -55,9 +82,17 @@ namespace AdventDay2
 
             int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
 
+            ////question 1 answer
             int result = ProcessIntCode(intCode, 0);
 
             System.Console.WriteLine("The answer is {0}", result);
+
+
+            //question 2;
+            int[] answers = SearchAnswers(Array.ConvertAll(str.Split(','), int.Parse));
+
+            System.Console.WriteLine("The answer is {0}, {1}", answers[0], answers[1]);
+
             // Suspend the screen.  
             System.Console.ReadLine();
         }
