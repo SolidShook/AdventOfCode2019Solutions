@@ -15,10 +15,21 @@ namespace AdventDay5
         private Modes Mode;
         public int Value;
 
-        public void AddValue(int value)
+        public int GetResult(int[] intCode)
         {
-            Value = value;
+            if (Mode == Modes.Param)
+            {
+                return intCode[Value];
+            }
+
+            if (Mode == Modes.Immed)
+            {
+                return Value;
+            }
+
+            return -999;
         }
+
         public Parameter(Modes mode, int value)
         {
             Mode = mode;
@@ -59,33 +70,25 @@ namespace AdventDay5
                     int index = opInstruction.Length - 3 - i;
                     int modeValue = index < 0 ? 0 : opInstruction[index] - '0';
 
-                    Modes test1 = (Modes)(modeValue);
-                    Parameter param = new Parameter((Modes)opInstruction[opInstruction.Length - 2 - i], intCode[cursor + i]);
+                    Modes mode = (Modes)(modeValue);
+                    Parameter param = new Parameter(mode, intCode[cursor + i + 1]);
                     pars.Add(param);
                 }
 
-                int test = 0;
+                int x = 0;
             }
             else
             {
                 op = opCode;
             }
 
-            int position1 = intCode[cursor + 1];
-            int position2 = intCode[cursor + 2];
-            int position3 = intCode[cursor + 3];
-
-            //int value1 = mode1 == Modes.Param ? intCode[position1] : position1;
-            //int value2 = mode2 == Modes.Param ? intCode[position2] : position2;
-            //int value3 = mode3 == Modes.Param ? intCode[position3] : position3;
-
             if (op == 1)
             {
-                //intCode[position3] = value1 + value2;
+                intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
             }
             else if (op == 2)
             {
-                //intCode[position3] = value1 * value2;
+                intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
             } 
             else if (op == 3)
             {
@@ -152,12 +155,6 @@ namespace AdventDay5
             int result = ProcessIntCode(intCode, 0);
 
             System.Console.WriteLine("The answer is {0}", result);
-
-
-            //question 2;
-            int[] answers = SearchAnswers(Array.ConvertAll(str.Split(','), int.Parse));
-
-            System.Console.WriteLine("The answer is {0}, {1}", answers[0], answers[1]);
 
             // Suspend the screen.  
             System.Console.ReadLine();
