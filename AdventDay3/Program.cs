@@ -47,26 +47,20 @@ namespace AdventDay3
                 int x2 = Math.Max(line1.p1.x, line1.p2.x);
                 int y1 = Math.Min(line2.p1.y, line2.p2.y);
                 int y2 = Math.Max(line2.p1.y, line2.p2.y);
-                
-                //if (line2.p1.x == 155 && line1.p1.y == 4 ||
-                //    line2.p1.x== 100 && line1.p1.y == -30)
-                //{
-                //    System.Console.WriteLine("welcome to heck");
-                //} 
 
-                if (line2.p1.x >= x1 && line2.p1.x <= x2)
+                if (line2.p1.x == 155 && line1.p1.y == 4)
                 {
-                    if (line1.p1.y >= y1 && line2.p1.y <= y2)
+                    System.Console.WriteLine("welcome to heck");
+                }
+
+                if (line2.p1.x > x1 && line2.p1.x < x2)
+                {
+                    if (line1.p1.y > y1 && line1.p1.y < y2)
                     {
                         System.Console.WriteLine("found, created intersection ({0}, {1})", line2.p1.x, line1.p1.y);
                         return new Point(line2.p1.x, line1.p1.y);
                     }
                 }
-
-                //if (line2.p1.x == 155 && line1.p1.y == 4)
-                //{
-                //    System.Console.WriteLine("welcome to heck");
-                //}
             }
             else
             {
