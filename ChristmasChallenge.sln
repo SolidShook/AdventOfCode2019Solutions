@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChristmasChallenge", "Chris
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdventDay2", "AdventDay2\AdventDay2.csproj", "{FD8C6659-2107-4991-8F67-DF81B87F5959}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdventDay3", "AdventDay3\AdventDay3.csproj", "{4BB9EDFA-85D4-4690-AABA-E7BC17C6E86E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdventDay3", "AdventDay3\AdventDay3.csproj", "{4BB9EDFA-85D4-4690-AABA-E7BC17C6E86E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
