@@ -1,46 +1,97 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace AdventDay5
 {
-    enum modes
+    enum Modes
     {
-        param,
-        immed
+        Param,
+        Immed
+    }
+
+    class Parameter
+    {
+        private Modes Mode;
+        public int Value;
+
+        public void AddValue(int value)
+        {
+            Value = value;
+        }
+        public Parameter(Modes mode, int value)
+        {
+            Mode = mode;
+            Value = value;
+        }
     }
 
     class Program
     {
-        private static modes mode;
         public static int loops = 0;
         static int ProcessIntCode(int[] intCode, int cursor)
         {
             loops++;
             int opCode = intCode[cursor];
+
+            int steps = 0;
+            int op = 0;
+
+            string opInstruction = opCode.ToString();
+            List<Parameter> pars = new List<Parameter>();
+
+            if (opInstruction.Length > 1)
+            {
+                op = opInstruction[^1] - '0';
+
+                if (op == 1 || op == 2)
+                {
+                    steps = 3;
+                }
+
+                if (op == 3 || op == 4)
+                {
+                    steps = 1;
+                }
+
+                for (int i = 0; i < steps; i++)
+                {
+                    int index = opInstruction.Length - 3 - i;
+                    int modeValue = index < 0 ? 0 : opInstruction[index] - '0';
+
+                    Modes test1 = (Modes)(modeValue);
+                    Parameter param = new Parameter((Modes)opInstruction[opInstruction.Length - 2 - i], intCode[cursor + i]);
+                    pars.Add(param);
+                }
+
+                int test = 0;
+            }
+            else
+            {
+                op = opCode;
+            }
+
             int position1 = intCode[cursor + 1];
             int position2 = intCode[cursor + 2];
             int position3 = intCode[cursor + 3];
-            int steps = 0;
 
-            int value1 = mode == modes.param ? intCode[position1] : position1;
-            int value2 = mode == modes.param ? intCode[position2] : position2;
+            //int value1 = mode1 == Modes.Param ? intCode[position1] : position1;
+            //int value2 = mode2 == Modes.Param ? intCode[position2] : position2;
+            //int value3 = mode3 == Modes.Param ? intCode[position3] : position3;
 
-            if (opCode == 1)
+            if (op == 1)
             {
-                intCode[position3] = value1 + value2;
-                steps = 4;
+                //intCode[position3] = value1 + value2;
             }
-            else if (opCode == 2)
+            else if (op == 2)
             {
-                intCode[position3] = value1 * value2;
-                steps = 4;
+                //intCode[position3] = value1 * value2;
             } 
-            else if (opCode == 3)
+            else if (op == 3)
             {
-                steps = 2;
             }
-            else if (opCode == 4)
+            else if (op == 4)
             {
-                steps = 2;
             }
             else
             {
@@ -50,7 +101,7 @@ namespace AdventDay5
 
             if (intCode[cursor + 4] != 99)
             {
-                return ProcessIntCode(intCode, cursor + steps);
+                return ProcessIntCode(intCode, cursor + steps + 1);
             }
             else
             {
@@ -85,19 +136,15 @@ namespace AdventDay5
             return new int[] { answer1, answer2 };
         }
 
-        static void Main(string[] args)
+        static void Main()
         {
             Console.WriteLine("Hello World!");
-            int counter = 0;
-            string line;
 
             System.IO.StreamReader file =
                 new System.IO.StreamReader("../../../data.txt");
 
             string str = file.ReadToEnd();
             file.Close();
-
-            mode = modes.param;
 
             int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
 

@@ -33,8 +33,6 @@ namespace AdventDay3
             dist1 = _dist1 + dif1;
             dist2 = _dist2 + dif2;
             totalDist = dist1 + dist2;
-
-            int x = 0;
         }
     }
     class Program
