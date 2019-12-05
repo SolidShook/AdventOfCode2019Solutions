@@ -6,6 +6,26 @@ namespace AdventDay3
 {
     class Program
     {
+        static int getShortestManhattan(List<Point> points)
+        {
+            int? shortest = null;
+
+            foreach (Point point in points)
+            {
+                int distance = point.getManhattanDistance();
+
+                if (distance > 0)
+                {
+                    if (distance < shortest || shortest == null)
+                    {
+                        shortest = distance;
+                    }
+                }
+            }
+
+            return (int)shortest;
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -22,12 +42,13 @@ namespace AdventDay3
                 wires.Add(new Wire(wire.Split(',')));
             }
 
-            wires[0].getIntersections(wires[1]);
+            List<Point> intersections = wires[0].getIntersections(wires[1]);
 
+            int answer = getShortestManhattan(intersections);
             //int answer = wires[0].CalculateShortestDistance(wires[1].lines);
 
             //int answer = wires[0].CalculateShortestLength(wires[1].lines);
-            System.Console.WriteLine("The answer is {0}", 1);
+            System.Console.WriteLine("The answer is {0}", answer);
 
             System.Console.ReadLine();
         }
