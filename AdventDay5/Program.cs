@@ -10,6 +10,15 @@ namespace AdventDay5
         Immed
     }
 
+    enum Instructions
+    {
+        ADD,
+        MULT,
+        INPUT,
+        OUTPUT,
+        ERROR
+    }
+
     class Parameter
     {
         private Modes Mode;
@@ -45,27 +54,41 @@ namespace AdventDay5
             loops++;
             int opCode = intCode[cursor];
 
-            int steps = 0;
-            int op = 0;
+            int paramCount = 0;
+
+            Instructions instruction = Instructions.ERROR;
 
             string opInstruction = opCode.ToString();
             List<Parameter> pars = new List<Parameter>();
 
             if (opInstruction.Length > 1)
             {
-                op = opInstruction[^1] - '0';
+                int instr = opInstruction[^1] - '0';
 
-                if (op == 1 || op == 2)
+                switch (instr)
                 {
-                    steps = 3;
+                    case 1:
+                        instruction = Instructions.ADD;
+                        paramCount = 3;
+                        break;
+                    case 2:
+                        instruction = Instructions.MULT;
+                        paramCount = 3;
+                        break;
+                    case 3:
+                        instruction = Instructions.INPUT;
+                        paramCount = 1;
+                        break;
+                    case 4:
+                        instruction = Instructions.OUTPUT;
+                        paramCount = 1;
+                        break;
+                    default:
+                        instruction = Instructions.ERROR;
+                        break;
                 }
 
-                if (op == 3 || op == 4)
-                {
-                    steps = 1;
-                }
-
-                for (int i = 0; i < steps; i++)
+                for (int i = 0; i < paramCount; i++)
                 {
                     int index = opInstruction.Length - 3 - i;
                     int modeValue = index < 0 ? 0 : opInstruction[index] - '0';
@@ -74,37 +97,27 @@ namespace AdventDay5
                     Parameter param = new Parameter(mode, intCode[cursor + i + 1]);
                     pars.Add(param);
                 }
-
-                int x = 0;
-            }
-            else
-            {
-                op = opCode;
             }
 
-            if (op == 1)
+            switch (instruction)
             {
-                intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
-            }
-            else if (op == 2)
-            {
-                intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
-            } 
-            else if (op == 3)
-            {
-            }
-            else if (op == 4)
-            {
-            }
-            else
-            {
-                //you fucked up
-                return -999;
+                case Instructions.ADD:
+                    intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
+                    break;
+                case Instructions.MULT:
+                    intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
+                    break;
+                case Instructions.INPUT:
+                    break;
+                case Instructions.OUTPUT:
+                    break;
+                case Instructions.ERROR:
+                    return -999;
             }
 
-            if (intCode[cursor + 4] != 99)
+            if (intCode[cursor + paramCount + 1] != 99)
             {
-                return ProcessIntCode(intCode, cursor + steps + 1);
+                return ProcessIntCode(intCode, cursor + paramCount + 1);
             }
             else
             {
@@ -155,6 +168,7 @@ namespace AdventDay5
             int result = ProcessIntCode(intCode, 0);
 
             System.Console.WriteLine("The answer is {0}", result);
+
 
             // Suspend the screen.  
             System.Console.ReadLine();
