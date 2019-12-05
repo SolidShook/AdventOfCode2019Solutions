@@ -9,142 +9,145 @@ using System.Text.RegularExpressions;
 
 namespace AdventDay3
 {
-    class Line
+    class Point
     {
-        public Vector2 a;
-        public Vector2 b;
+        public int x;
+        public int y;
 
-        public Line(Vector2 pointA, Vector2 pointB)
+        public static bool operator ==(Point a, Point b)
         {
-            a = pointA;
-            b = pointB;
+            return a.x == b.x && a.y == b.y;
+        }
+
+        public static bool operator !=(Point a, Point b)
+        {
+            return a != b;
+        }
+
+        public Point(int _x, int _y)
+        {
+            x = _x;
+            y = _y;
         }
     }
-
-    class Movement
+    class Line
     {
         public char dir;
         public int steps;
+        public Point originPoint;
 
-        public Movement(char _dir, int _steps)
+        public Line(char _dir, int _steps, int _originX, int _originY)
         {
             dir = _dir;
             steps = _steps;
+            originPoint = new Point(_originX, _originY);
         }
     }
 
     class Wire
     {
-        public List<Line> lines = new List<Line>();
-        private List<Movement> movements = new List<Movement>();
-        private Vector2 currentPosition;
-        private void CreateLines()
+        public readonly List<Line> lines = new List<Line>();
+
+        private List<Point> calculatePoints(List<Line> otherLines)
         {
-            foreach (Movement move in movements)
+            List<Point> points = new List<Point>();
+
+            foreach (Line line in otherLines)
             {
-                Vector2 startPoint = new Vector2(currentPosition.X, currentPosition.Y);
-
-                int xScale = 0;
-                int yScale = 0;
-
-                if (move.dir == 'R')
+                for (int i = 1; i <= line.steps; i++)
                 {
-                    xScale = 1;
-                } else if (move.dir == 'L')
-                {
-                    xScale = -1;
-                } else if (move.dir == 'U')
-                {
-                    yScale = 1;
-                } else if (move.dir == 'D')
-                {
-                    yScale = -1;
-                }
-
-                Vector2 endPoint = new Vector2(currentPosition.X + (move.steps * xScale), currentPosition.Y + (move.steps * yScale));
-
-                Line line = new Line(startPoint, endPoint);
-                lines.Add(line);
-
-                currentPosition.X = endPoint.X;
-                currentPosition.Y = endPoint.Y;
-            }
-        }
-
-        private Vector2? CheckIntersection(Line line1, Line line2)
-        {
-            float x1 = line1.a.X;
-            float x2 = line1.b.X;
-            float x3 = line2.a.X;
-            float x4 = line2.b.X;
-            float y1 = line1.a.Y;
-            float y2 = line1.b.Y;
-            float y3 = line2.a.Y;
-            float y4 = line2.b.Y;
-
-
-            float det12 = x1 * y2 - y1 * x2;
-            float det34 = x3 * y4 - y3 * x4;
-            float den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-            if (den == 0)
-            {
-                return null;
-            }
-
-            float x = (det12 * (x3 - x4) - (x1 - x2) * det34) / den;
-            float y = (det12 * (y3 - x4) - (y1 - y2) * det34) / den;
-
-            return new Vector2((float)Math.Round(x), (float)Math.Round(y));
-        }
-
-        private List<Vector2> CalculateIntersections(List<Line> otherLines)
-        {
-            List<Vector2> intersections = new List<Vector2>();
-
-            foreach (Line line in lines)
-            {
-                foreach (Line otherLine in lines)
-                {
-                    Vector2? intersection = CheckIntersection(line, otherLine);
-
-                    if (intersection != null)
+                    int x = 0;
+                    int y = 0;
+                    if (line.dir == 'R')
                     {
-                        intersections.Add((Vector2)intersection);
+                        x = line.originPoint.x + i;
+                        y = line.originPoint.y;
                     }
+                    if (line.dir == 'L')
+                    {
+                        x = line.originPoint.x - i;
+                        y = line.originPoint.y;
+                    }
+                    if (line.dir == 'U')
+                    {
+                        x = line.originPoint.x;
+                        y = line.originPoint.y + i;
+                    }
+                    if (line.dir == 'D')
+                    {
+                        x = line.originPoint.x;
+                        y = line.originPoint.y - i;
+                    }
+
+                    points.Add(new Point(x, y));
                 }
             }
-            return intersections;
+
+            return points;
         }
 
-        public int getSmallestMdIntersection(List<Line> otherLines)
+        private int getLowestManhattanDistance(List<Point> intersections)
         {
             int? shortestDistance = null;
 
-            List<Vector2> intersections = CalculateIntersections(otherLines);
-
-            foreach (Vector2 intersection in intersections)
+            foreach (Point point in intersections)
             {
-                int mhDistance = (int)(Math.Abs(intersection.X) + Math.Abs(intersection.Y));
+                int manhattanDistance = Math.Abs(point.x) + Math.Abs(point.y);
 
-                if (shortestDistance == null || shortestDistance > mhDistance)
+                if (manhattanDistance > 0 && (shortestDistance == null || shortestDistance > manhattanDistance))
                 {
-                    shortestDistance = mhDistance;
+                    shortestDistance = manhattanDistance;
                 }
             }
-            return (int)shortestDistance;
+
+            return (int) shortestDistance;
         }
+
+        public int CalculateShortestDistance(List<Line> otherLines)
+        {
+            List<Point> points = calculatePoints(lines);
+            List<Point> otherPoints = calculatePoints(otherLines);
+            List<Point> intersections = new List<Point>();
+
+            foreach (Point point1 in points)
+            {
+                foreach (Point point2 in otherPoints)
+                {
+                    if (point1 == point2)
+                    {
+                        intersections.Add(point1);
+                    }
+                }
+            }
+
+            return getLowestManhattanDistance(intersections);
+        }
+
         public Wire(string[] instructions)
         {
-            currentPosition = new Vector2();
+            int x = 0;
+            int y = 0;
 
             foreach (string instruction in instructions)
             {
                 char dir = (char)Regex.Match(instruction, @"\D+").Value[0];
                 int steps = int.Parse(Regex.Match(instruction, @"\d+").Value);
-                movements.Add(new Movement(dir, steps));
-            }
+                lines.Add(new Line(dir, steps, x, y));
 
-            CreateLines();
+                if (dir == 'R')
+                {
+                    x += steps;
+                } else if (dir == 'L')
+                {
+                    x -= steps;
+                } else if (dir == 'U')
+                {
+                    y += steps;
+                } else if (dir == 'D')
+                {
+                    y -= steps;
+                }
+            }
         }
     }
 }

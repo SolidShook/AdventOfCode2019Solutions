@@ -22,9 +22,9 @@ namespace AdventDay3
                 wires.Add(new Wire(wire.Split(',')));
             }
 
-            int result = wires[0].getSmallestMdIntersection(wires[1].lines);
+            int answer = wires[0].CalculateShortestDistance(wires[1].lines);
 
-            System.Console.WriteLine("The answer is {0}", result);
+            System.Console.WriteLine("The answer is {0}", answer);
 
             System.Console.ReadLine();
         }
