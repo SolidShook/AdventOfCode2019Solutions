@@ -108,8 +108,14 @@ namespace AdventDay5
                     intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
                     break;
                 case Instructions.INPUT:
+                    System.Console.WriteLine("INPUT");
+                    string line = Console.ReadLine();
+                    int a = int.Parse(line);
+                    System.Console.WriteLine("YOU GAVE {0}", a);
+                    intCode[pars[0].Value] = a;
                     break;
                 case Instructions.OUTPUT:
+                    System.Console.WriteLine("OUTPUT {0}", intCode[pars[0].Value]);
                     break;
                 case Instructions.ERROR:
                     return -999;
