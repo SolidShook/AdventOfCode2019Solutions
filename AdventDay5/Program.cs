@@ -2,8 +2,15 @@
 
 namespace AdventDay5
 {
+    enum modes
+    {
+        param,
+        immed
+    }
+
     class Program
     {
+        private static modes mode;
         public static int loops = 0;
         static int ProcessIntCode(int[] intCode, int cursor)
         {
@@ -12,14 +19,28 @@ namespace AdventDay5
             int position1 = intCode[cursor + 1];
             int position2 = intCode[cursor + 2];
             int position3 = intCode[cursor + 3];
+            int steps = 0;
+
+            int value1 = mode == modes.param ? intCode[position1] : position1;
+            int value2 = mode == modes.param ? intCode[position2] : position2;
 
             if (opCode == 1)
             {
-                intCode[position3] = intCode[position1] + intCode[position2];
+                intCode[position3] = value1 + value2;
+                steps = 4;
             }
             else if (opCode == 2)
             {
-                intCode[position3] = intCode[position1] * intCode[position2];
+                intCode[position3] = value1 * value2;
+                steps = 4;
+            } 
+            else if (opCode == 3)
+            {
+                steps = 2;
+            }
+            else if (opCode == 4)
+            {
+                steps = 2;
             }
             else
             {
@@ -29,7 +50,7 @@ namespace AdventDay5
 
             if (intCode[cursor + 4] != 99)
             {
-                return ProcessIntCode(intCode, cursor + 4);
+                return ProcessIntCode(intCode, cursor + steps);
             }
             else
             {
@@ -75,6 +96,8 @@ namespace AdventDay5
 
             string str = file.ReadToEnd();
             file.Close();
+
+            mode = modes.param;
 
             int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
 
