@@ -131,10 +131,16 @@ namespace AdventDay5
             switch (instruction)
             {
                 case Instructions.ADD:
-                    intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
+                    int addValue1 = pars[0].GetResult(intCode);
+                    int addValue2 = pars[1].GetResult(intCode);
+                    int addResult = addValue1 + addValue2;
+                    intCode[pars[2].Value] = addResult;
                     break;
                 case Instructions.MULT:
-                    intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
+                    int multValue1 = pars[0].GetResult(intCode);
+                    int multValue2 = pars[1].GetResult(intCode);
+                    int multResult = multValue1 * multValue2;
+                    intCode[pars[2].Value] = multResult;
                     break;
                 case Instructions.INPUT:
                     System.Console.WriteLine("INPUT");
