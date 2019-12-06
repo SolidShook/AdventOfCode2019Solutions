@@ -16,6 +16,10 @@ namespace AdventDay5
         MULT,
         INPUT,
         OUTPUT,
+        JUMP_IF_TRUE,
+        JUMP_IF_FALSE,
+        LESS_THAN,
+        EQUALS,
         HALT,
         ERROR
     }
@@ -104,6 +108,22 @@ namespace AdventDay5
                     instruction = Instructions.OUTPUT;
                     paramCount = 1;
                     break;
+                case 5:
+                    instruction = Instructions.JUMP_IF_TRUE;
+                    paramCount = 2;
+                    break;
+                case 6:
+                    instruction = Instructions.JUMP_IF_FALSE;
+                    paramCount = 2;
+                    break;
+                case 7:
+                    instruction = Instructions.LESS_THAN;
+                    paramCount = 3;
+                    break;
+                case 8:
+                    instruction = Instructions.EQUALS;
+                    paramCount = 3;
+                    break;
                 case 99:
                     instruction = Instructions.HALT;
                     paramCount = 0;
@@ -128,19 +148,15 @@ namespace AdventDay5
                 }
             }
 
+            int newCursorPos = cursor + paramCount + 1;
+
             switch (instruction)
             {
                 case Instructions.ADD:
-                    int addValue1 = pars[0].GetResult(intCode);
-                    int addValue2 = pars[1].GetResult(intCode);
-                    int addResult = addValue1 + addValue2;
-                    intCode[pars[2].Value] = addResult;
+                    intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
                     break;
                 case Instructions.MULT:
-                    int multValue1 = pars[0].GetResult(intCode);
-                    int multValue2 = pars[1].GetResult(intCode);
-                    int multResult = multValue1 * multValue2;
-                    intCode[pars[2].Value] = multResult;
+                    intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
                     break;
                 case Instructions.INPUT:
                     System.Console.WriteLine("INPUT");
@@ -150,7 +166,40 @@ namespace AdventDay5
                     intCode[pars[0].Value] = a;
                     break;
                 case Instructions.OUTPUT:
-                    System.Console.WriteLine("OUTPUT {0}", intCode[pars[0].Value]);
+                    System.Console.WriteLine("OUTPUT {0}", pars[0].GetResult(intCode));
+                    break;
+                case Instructions.JUMP_IF_TRUE:
+                    if (pars[0].GetResult(intCode) != 0)
+                    {
+                        newCursorPos = pars[1].GetResult(intCode);
+                    }
+                    break;
+                case Instructions.JUMP_IF_FALSE:
+                    if (pars[0].GetResult(intCode) == 0)
+                    {
+                        newCursorPos = pars[1].GetResult(intCode);
+                    }
+                    break;
+                case Instructions.LESS_THAN:
+                    if (pars[0].GetResult(intCode) < pars[1].GetResult(intCode))
+                    {
+                        intCode[pars[2].Value] = 1;
+                    }
+                    else
+                    {
+                        int test = pars[2].GetResult(intCode);
+                        intCode[pars[2].Value] = 0;
+                    }
+                    break;
+                case Instructions.EQUALS:
+                    if (pars[0].GetResult(intCode) == pars[1].GetResult(intCode))
+                    {
+                        intCode[pars[2].Value] = 1;
+                    }
+                    else
+                    {
+                        intCode[pars[2].Value] = 0;
+                    }
                     break;
                 case Instructions.HALT:
                     System.Console.WriteLine("HALT");
@@ -160,7 +209,7 @@ namespace AdventDay5
                     return -999;
             }
 
-            return ProcessIntCode(intCode, cursor + paramCount + 1);
+            return ProcessIntCode(intCode, newCursorPos);
         }
 
         private static int[] SearchAnswers(int[] intCode)
@@ -198,17 +247,16 @@ namespace AdventDay5
 
             string str = file.ReadToEnd();
             file.Close();
+            while (true)
+            {
+                int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
 
-            int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
+                ////question 1 answer
+                int result = ProcessIntCode(intCode, 0);
 
-            ////question 1 answer
-            int result = ProcessIntCode(intCode, 0);
+                //Console.WriteLine("[{0}]", string.Join(", ", intCode));
 
-            Console.WriteLine("[{0}]", string.Join(", ", intCode));
-
-
-            // Suspend the screen.  
-            System.Console.ReadLine();
+            }
         }
     }
 }
