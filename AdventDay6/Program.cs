@@ -30,11 +30,13 @@ namespace AdventDay6
                 if (!SpaceObjects.ContainsKey(names[i]))
                 {
                     SpaceObject sObj = new SpaceObject();
-                    if (i > 0)
-                    {
-                        sObj.Target = names[i - 1];
-                    }
                     SpaceObjects.Add(names[i], sObj);
+                }
+
+                if (i > 0)
+                {
+                    SpaceObject sObj = SpaceObjects[names[i]];
+                    sObj.Target = names[i - 1];
                 }
             }
         }
@@ -55,7 +57,10 @@ namespace AdventDay6
 
             foreach (KeyValuePair<string, SpaceObject> obj in SpaceObjects)
             {
-                orbitCount += CountOrbits(obj.Value, 0);
+                int result = CountOrbits(obj.Value, 0);
+
+                Console.WriteLine("Obj {0} has {1} orbits", obj.Key, result);
+                orbitCount += result;
                 // Do something here
             }
 
