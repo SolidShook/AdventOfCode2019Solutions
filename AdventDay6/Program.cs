@@ -12,7 +12,6 @@ namespace AdventDay6
     class SpaceObject
     {
         public string Target;
-        public HashSet<string> Path;
         public int Steps;
         public SpaceObject()
         {
@@ -44,23 +43,37 @@ namespace AdventDay6
         private int CountOrbits(SpaceObject obj)
         {
             int count = 0;
-            HashSet<string> path = new HashSet<string>();
             string nextObj = obj.Target;
 
             while (nextObj != null)
             {
                 count++;
 
-                //not efficient but saves making a new loop
+                nextObj = SpaceObjects[nextObj].Target;
+            }
+
+            obj.Steps = count;
+
+            return count;
+        }
+
+        public HashSet<string> GetPathToCentre(SpaceObject obj)
+        {
+            //Could have done in previous function, but it would have wasted a lot of memory.
+            //It's like a memory vs performance thing. Not knowing the amount of spaceObjects makes might make this safer;
+
+            HashSet<string> path = new HashSet<string>();
+
+            string nextObj = obj.Target;
+
+            while (nextObj != null)
+            {
                 path.Add(nextObj);
 
                 nextObj = SpaceObjects[nextObj].Target;
             }
 
-            obj.Steps = count;
-            obj.Path = path;
-
-            return count;
+            return path;
         }
 
         private int CountAllOrbits()
@@ -84,14 +97,13 @@ namespace AdventDay6
             SpaceObject you = SpaceObjects["YOU"];
             SpaceObject santa = SpaceObjects["SAN"];
 
-            HashSet<string> youPath = new HashSet<string>(you.Path);
-            HashSet<string> santaPath = new HashSet<string>(santa.Path);
-            HashSet<string> ans = new HashSet<string>(you.Path);
+            HashSet<string> youPath = GetPathToCentre(you);
+            HashSet<string> santaPath = GetPathToCentre(santa);
+            HashSet<string> common = new HashSet<string>(youPath);
 
-            ans.IntersectWith(santa.Path);
-            youPath.ExceptWith(ans);
-            santaPath.ExceptWith(ans);
-
+            common.IntersectWith(santaPath);
+            youPath.ExceptWith(common);
+            santaPath.ExceptWith(common);
 
             return youPath.Count + santaPath.Count;
         }
