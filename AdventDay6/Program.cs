@@ -12,7 +12,8 @@ namespace AdventDay6
     class SpaceObject
     {
         public string Target;
-
+        public HashSet<string> Path;
+        public int Steps;
         public SpaceObject()
         {
         }
@@ -40,29 +41,26 @@ namespace AdventDay6
             }
         }
 
-        private int CountOrbits(SpaceObject obj, int count)
+        private int CountOrbits(SpaceObject obj)
         {
-            if (obj.Target != null)
-            {
-                count = CountOrbits(SpaceObjects[obj.Target], count + 1);
-            }
-
-            return count;
-        }
-
-        private HashSet<string> GetPathToCenter(SpaceObject obj)
-        {
+            int count = 0;
             HashSet<string> path = new HashSet<string>();
             string nextObj = obj.Target;
 
             while (nextObj != null)
             {
+                count++;
+
+                //not efficient but saves making a new loop
                 path.Add(nextObj);
 
                 nextObj = SpaceObjects[nextObj].Target;
             }
 
-            return path;
+            obj.Steps = count;
+            obj.Path = path;
+
+            return count;
         }
 
         private int CountAllOrbits()
@@ -71,11 +69,9 @@ namespace AdventDay6
 
             foreach (KeyValuePair<string, SpaceObject> obj in SpaceObjects)
             {
-                int result = CountOrbits(obj.Value, 0);
+                int result = CountOrbits(obj.Value);
 
-                Console.WriteLine("Obj {0} has {1} orbits", obj.Key, result);
                 orbitCount += result;
-                // Do something here
             }
 
             return orbitCount;
@@ -83,11 +79,21 @@ namespace AdventDay6
 
         private int GetStepsToSanta()
         {
+            //Answer2
+
             SpaceObject you = SpaceObjects["YOU"];
             SpaceObject santa = SpaceObjects["SAN"];
 
+            HashSet<string> youPath = new HashSet<string>(you.Path);
+            HashSet<string> santaPath = new HashSet<string>(santa.Path);
+            HashSet<string> ans = new HashSet<string>(you.Path);
 
-            return 0;
+            ans.IntersectWith(santa.Path);
+            youPath.ExceptWith(ans);
+            santaPath.ExceptWith(ans);
+
+
+            return youPath.Count + santaPath.Count;
         }
 
         public Sorter(string[] instrs)
@@ -105,7 +111,11 @@ namespace AdventDay6
             int answer = CountAllOrbits();
 
             Console.WriteLine("the answer is {0}", answer);
-            Console.ReadLine();
+
+            int answer2 = GetStepsToSanta();
+
+            Console.WriteLine("the answer is {0}", answer2);
+            
         }
     }
 
@@ -114,17 +124,22 @@ namespace AdventDay6
         static void Main()
         {
             Console.WriteLine("Hello World!");
-            System.IO.StreamReader file =
+            while (true)
+            {
+                System.IO.StreamReader file =
                 new System.IO.StreamReader("../../../data.txt");
 
-            string str = file.ReadToEnd();
-            file.Dispose();
+                string str = file.ReadToEnd();
+                file.Dispose();
 
-            List<string> instrs = new List<string>();
+                List<string> instrs = new List<string>();
 
-            instrs.AddRange(str.Split("\r\n"));
+                instrs.AddRange(str.Split("\r\n"));
 
-            new Sorter(instrs.ToArray());
+                new Sorter(instrs.ToArray());
+
+                Console.ReadLine();
+            }
         }
     }
 }
