@@ -16,6 +16,7 @@ namespace AdventDay5
         MULT,
         INPUT,
         OUTPUT,
+        HALT,
         ERROR
     }
 
@@ -39,9 +40,20 @@ namespace AdventDay5
             return -999;
         }
 
+        public void SetMode(int mode)
+        {
+            Mode = (Modes) mode;
+        }
+
         public Parameter(Modes mode, int value)
         {
             Mode = mode;
+            Value = value;
+        }
+
+        public Parameter(int value)
+        {
+            Mode = Modes.Param;
             Value = value;
         }
     }
@@ -60,42 +72,59 @@ namespace AdventDay5
 
             string opInstruction = opCode.ToString();
             List<Parameter> pars = new List<Parameter>();
+            
+            int instr;
+            string modes = "";
 
-            if (opInstruction.Length > 1)
+            if (opInstruction.Length == 1)
             {
-                int instr = opInstruction[^1] - '0';
+                instr = int.Parse(opInstruction);
+            }
+            else
+            {
+                instr = int.Parse(opInstruction.Substring(opInstruction.Length - 2));
+                modes = opInstruction.Substring(0, opInstruction.Length - 2);
+            }
 
-                switch (instr)
+            switch (instr)
+            {
+                case 1:
+                    instruction = Instructions.ADD;
+                    paramCount = 3;
+                    break;
+                case 2:
+                    instruction = Instructions.MULT;
+                    paramCount = 3;
+                    break;
+                case 3:
+                    instruction = Instructions.INPUT;
+                    paramCount = 1;
+                    break;
+                case 4:
+                    instruction = Instructions.OUTPUT;
+                    paramCount = 1;
+                    break;
+                case 99:
+                    instruction = Instructions.HALT;
+                    paramCount = 0;
+                    break;
+                default:
+                    instruction = Instructions.ERROR;
+                    break;
+            }
+
+            for (int i = 0; i < paramCount; i++)
+            {
+                pars.Add(new Parameter(intCode[cursor + i + 1]));
+            }
+
+            if (modes != "")
+            {
+                int it = 0;
+                for (int x = modes.Length - 1; x >= 0; x--)
                 {
-                    case 1:
-                        instruction = Instructions.ADD;
-                        paramCount = 3;
-                        break;
-                    case 2:
-                        instruction = Instructions.MULT;
-                        paramCount = 3;
-                        break;
-                    case 3:
-                        instruction = Instructions.INPUT;
-                        paramCount = 1;
-                        break;
-                    case 4:
-                        instruction = Instructions.OUTPUT;
-                        paramCount = 1;
-                        break;
-                    default:
-                        instruction = Instructions.ERROR;
-                        break;
-                }
-
-                for (int i = 0; i < paramCount; i++)
-                {
-                    int index = opInstruction.Length - 3 - i;
-                    int modeValue = index < 0 ? 0 : opInstruction[index] - '0';
-
-                    Modes mode = (Modes)(modeValue);
-                    Parameter param = new Parameter(mode, intCode[cursor + i + 1]);
-                    pars.Add(param);
+                    pars[it].SetMode(modes[x] - '0');
+                    it++;
                 }
             }
 
@@ -117,18 +146,15 @@ namespace AdventDay5
                 case Instructions.OUTPUT:
                     System.Console.WriteLine("OUTPUT {0}", intCode[pars[0].Value]);
                     break;
+                case Instructions.HALT:
+                    System.Console.WriteLine("HALT");
+                    return intCode[0];
+                    break;
                 case Instructions.ERROR:
                     return -999;
             }
 
-            if (intCode[cursor + paramCount + 1] != 99)
-            {
-                return ProcessIntCode(intCode, cursor + paramCount + 1);
-            }
-            else
-            {
-                return intCode[0];
-            }
+            return ProcessIntCode(intCode, cursor + paramCount + 1);
         }
 
         private static int[] SearchAnswers(int[] intCode)
@@ -160,8 +186,7 @@ namespace AdventDay5
 
         static void Main()
         {
-            Console.WriteLine("Hello World!");
-
+            System.Console.WriteLine("BEGIN");
             System.IO.StreamReader file =
                 new System.IO.StreamReader("../../../data.txt");
 
@@ -173,7 +198,7 @@ namespace AdventDay5
             ////question 1 answer
             int result = ProcessIntCode(intCode, 0);
 
-            System.Console.WriteLine("The answer is {0}", result);
+            Console.WriteLine("[{0}]", string.Join(", ", intCode));
 
 
             // Suspend the screen.  
