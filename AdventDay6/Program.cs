@@ -11,11 +11,10 @@ namespace AdventDay6
 
     class SpaceObject
     {
-        public string Target { get; set; }
+        public string Target;
 
         public SpaceObject()
         {
-
         }
     }
 
@@ -51,6 +50,21 @@ namespace AdventDay6
             return count;
         }
 
+        private HashSet<string> GetPathToCenter(SpaceObject obj)
+        {
+            HashSet<string> path = new HashSet<string>();
+            string nextObj = obj.Target;
+
+            while (nextObj != null)
+            {
+                path.Add(nextObj);
+
+                nextObj = SpaceObjects[nextObj].Target;
+            }
+
+            return path;
+        }
+
         private int CountAllOrbits()
         {
             int orbitCount = 0;
@@ -65,6 +79,15 @@ namespace AdventDay6
             }
 
             return orbitCount;
+        }
+
+        private int GetStepsToSanta()
+        {
+            SpaceObject you = SpaceObjects["YOU"];
+            SpaceObject santa = SpaceObjects["SAN"];
+
+
+            return 0;
         }
 
         public Sorter(string[] instrs)
