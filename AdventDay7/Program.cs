@@ -258,19 +258,33 @@ namespace AdventDay7
                 IntCodeParser defaultParser = new IntCodeParser();
                 IntCodeParserSetInput parser = new IntCodeParserSetInput();
 
-                parser = new IntCodeParserSetInput();
-                List<Amplifier> amplifiers = new List<Amplifier>();
+                int? highest = null;
+                string combo = "";
 
-                string settings = "31240";
+                List<string> settingsCollection = Permutations.GetPermutations("01234");
 
-                int input = 0;
-                foreach (char setting in settings)
+                foreach(string settings in settingsCollection)
                 {
-                    Amplifier amp = new Amplifier(int.Parse(setting.ToString()), input);
-                    
-                    input = parser.process(intCode, amp.GetInputs());
-                    int x = 0;
+                    parser = new IntCodeParserSetInput();
+
+                    List<Amplifier> amplifiers = new List<Amplifier>();
+
+                    int input = 0;
+                    foreach (char setting in settings)
+                    {
+                        Amplifier amp = new Amplifier(int.Parse(setting.ToString()), input);
+
+                        input = parser.process(intCode, amp.GetInputs());
+                    }
+
+                    if (highest == null || input > highest)
+                    {
+                        highest = input;
+                        combo = settings;
+                    }
                 }
+
+                Console.WriteLine("{0} made {1}", combo, highest);
 
                 Console.ReadLine();
             }
