@@ -131,7 +131,7 @@ namespace AdventDay7
             return Operators.Ops[int.Parse(opCode)];
         }
 
-        private void Input(int[] intCode, List<Parameter> pars)
+        protected virtual void InputCommand(int[] intCode, List<Parameter> pars)
         {
             System.Console.WriteLine("INPUT");
             string line = Console.ReadLine();
@@ -157,7 +157,7 @@ namespace AdventDay7
                     intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
                     break;
                 case Instructions.INPUT:
-                    Input(intCode, pars);
+                    InputCommand(intCode, pars);
                     break;
                 case Instructions.OUTPUT:
                     System.Console.WriteLine("OUTPUT {0}", pars[0].GetResult(intCode));
@@ -204,9 +204,25 @@ namespace AdventDay7
         }
     }
 
+    class IntCodeParserSetInput : IntCodeParser
+    {
+        int Input;
+
+        protected override void InputCommand(int[] intCode, List<Parameter> pars)
+        {
+            intCode[pars[0].Value] = Input;
+        }
+
+        public int process(int[] intCode, int cursor, int input)
+        {
+            Input = input;
+            return ProcessIntCode(intCode, cursor);
+        }
+    }
     class Amplifier
     {
-        int PhaseSetting;
+        public int PhaseSetting;
+        public int Result;
 
         public Amplifier(int phaseSetting)
         {
@@ -223,22 +239,10 @@ namespace AdventDay7
 
             string str = file.ReadToEnd();
             file.Close();
-
-            IntCodeParser parser;
-            List<Amplifier> amplifiers;
-
             while (true)
             {
+                IntCodeParser parser = new IntCodeParser();
                 int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
-                parser = new IntCodeParser();
-                amplifiers = new List<Amplifier>();
-
-                string settings = "012345";
-
-                foreach(char setting in settings)
-                {
-                    amplifiers.Add(new Amplifier(int.Parse(setting.ToString())));
-                }
 
                 ////question 1 answer
                 int result = parser.ProcessIntCode(intCode, 0);
@@ -247,5 +251,42 @@ namespace AdventDay7
 
             }
         }
+        //static void Main()
+        //{
+        //    System.Console.WriteLine("BEGIN");
+        //    System.IO.StreamReader file =
+        //        new System.IO.StreamReader("../../../data.txt");
+
+        //    string str = file.ReadToEnd();
+        //    file.Close();
+
+        //    IntCodeParserSetInput parser;
+        //    List<Amplifier> amplifiers;
+
+        //    while (true)
+        //    {
+        //        int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
+        //        parser = new IntCodeParserSetInput();
+        //        amplifiers = new List<Amplifier>();
+
+        //        string settings = "012345";
+
+        //        foreach(char setting in settings)
+        //        {
+        //            amplifiers.Add(new Amplifier(int.Parse(setting.ToString())));
+        //        }
+
+        //        foreach(Amplifier amp in amplifiers)
+        //        {
+        //            parser.process(intCode, 0, amp.PhaseSetting);
+        //        }
+        //        ////question 1 answer
+        //        //int result = parser.ProcessIntCode(intCode, 0);
+
+        //        Console.ReadLine();
+        //        //Console.WriteLine("[{0}]", string.Join(", ", intCode));
+
+        //    }
+        //}
     }
 }
