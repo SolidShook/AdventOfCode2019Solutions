@@ -92,6 +92,7 @@ namespace AdventDay7
 
     class IntCodeParser
     {
+        public int LastOutput;
         private List<Parameter> GetParameters(int[] intCode, int cursor, Operator oper, string opCode)
         {
             List<Parameter> pars = new List<Parameter>();
@@ -113,6 +114,7 @@ namespace AdventDay7
                 int it = 0;
                 for (int x = modes.Length - 1; x >= 0; x--)
                 {
+                    var test = modes[x] -'0';
                     pars[it].SetMode(modes[x] - '0');
                     it++;
                 }
@@ -160,7 +162,8 @@ namespace AdventDay7
                     InputCommand(intCode, pars);
                     break;
                 case Instructions.OUTPUT:
-                    System.Console.WriteLine("OUTPUT {0}", pars[0].GetResult(intCode));
+                    LastOutput = pars[0].GetResult(intCode);
+                    //System.Console.WriteLine("OUTPUT {0}", LastOutput);
                     break;
                 case Instructions.JUMP_IF_TRUE:
                     if (pars[0].GetResult(intCode) != 0)
@@ -196,8 +199,8 @@ namespace AdventDay7
                     }
                     break;
                 case Instructions.HALT:
-                    System.Console.WriteLine("HALT");
-                    return intCode[0];
+                    //System.Console.WriteLine("HALT");
+                    return LastOutput;
             }
 
             return ProcessIntCode(intCode, newCursorPos);
@@ -206,27 +209,34 @@ namespace AdventDay7
 
     class IntCodeParserSetInput : IntCodeParser
     {
-        int Input;
-
+        int inputAddress;
+        List<int> Inputs;
         protected override void InputCommand(int[] intCode, List<Parameter> pars)
         {
-            intCode[pars[0].Value] = Input;
+            intCode[pars[0].Value] = Inputs[inputAddress];
+            inputAddress++;
         }
 
-        public int process(int[] intCode, int cursor, int input)
+        public int process(int[] intCode, List<int> inputs)
         {
-            Input = input;
-            return ProcessIntCode(intCode, cursor);
+            inputAddress = 0;
+            Inputs = inputs;
+            return ProcessIntCode(intCode, 0);
         }
     }
     class Amplifier
     {
         public int PhaseSetting;
-        public int Result;
+        public int Input;
 
-        public Amplifier(int phaseSetting)
+        public List<int> GetInputs ()
+        {
+            return new List<int> { PhaseSetting, Input };
+        }
+        public Amplifier(int phaseSetting, int input)
         {
             PhaseSetting = phaseSetting;
+            Input = input;
         }
     }
     class Program
@@ -239,54 +249,31 @@ namespace AdventDay7
 
             string str = file.ReadToEnd();
             file.Close();
+
             while (true)
             {
-                IntCodeParser parser = new IntCodeParser();
                 int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
 
-                ////question 1 answer
-                int result = parser.ProcessIntCode(intCode, 0);
 
-                //Console.WriteLine("[{0}]", string.Join(", ", intCode));
+                IntCodeParser defaultParser = new IntCodeParser();
+                IntCodeParserSetInput parser = new IntCodeParserSetInput();
 
+                parser = new IntCodeParserSetInput();
+                List<Amplifier> amplifiers = new List<Amplifier>();
+
+                string settings = "31240";
+
+                int input = 0;
+                foreach (char setting in settings)
+                {
+                    Amplifier amp = new Amplifier(int.Parse(setting.ToString()), input);
+                    
+                    input = parser.process(intCode, amp.GetInputs());
+                    int x = 0;
+                }
+
+                Console.ReadLine();
             }
         }
-        //static void Main()
-        //{
-        //    System.Console.WriteLine("BEGIN");
-        //    System.IO.StreamReader file =
-        //        new System.IO.StreamReader("../../../data.txt");
-
-        //    string str = file.ReadToEnd();
-        //    file.Close();
-
-        //    IntCodeParserSetInput parser;
-        //    List<Amplifier> amplifiers;
-
-        //    while (true)
-        //    {
-        //        int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
-        //        parser = new IntCodeParserSetInput();
-        //        amplifiers = new List<Amplifier>();
-
-        //        string settings = "012345";
-
-        //        foreach(char setting in settings)
-        //        {
-        //            amplifiers.Add(new Amplifier(int.Parse(setting.ToString())));
-        //        }
-
-        //        foreach(Amplifier amp in amplifiers)
-        //        {
-        //            parser.process(intCode, 0, amp.PhaseSetting);
-        //        }
-        //        ////question 1 answer
-        //        //int result = parser.ProcessIntCode(intCode, 0);
-
-        //        Console.ReadLine();
-        //        //Console.WriteLine("[{0}]", string.Join(", ", intCode));
-
-        //    }
-        //}
     }
 }
