@@ -29,7 +29,7 @@ namespace AdventDay7
         public int ParamCount;
         public Instructions Instruction;
 
-        public Operator(Instructions instruction, int paramCount, opMethod operation)
+        public Operator(Instructions instruction, int paramCount)
         {
             ParamCount = paramCount;
             Instruction = instruction;
@@ -74,41 +74,12 @@ namespace AdventDay7
         }
     }
 
-    //int returns new cursor position
-    public delegate int opMethod(int[] intCode, List<Parameter> pars, int cursor);
-
     class Operators
     {
-        static int Sum(int[] intCode, List<Parameter> pars, int cursor)
+        public static readonly Dictionary<int, Operator> Ops = new Dictionary<int, Operator>
         {
-            intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
-
-            return cursor + pars.Count;
-        }
-
-        static int Mult(int[] intCode, List<Parameter> pars, int cursor)
-        {
-            intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
-
-            return cursor + pars.Count + 1;
-        }
-
-        static int Input(int[] intCode, List<Parameter> pars, int cursor)
-        {
-            System.Console.WriteLine("INPUT");
-            string line = Console.ReadLine();
-            int a = int.Parse(line);
-            System.Console.WriteLine("YOU GAVE {0}", a);
-            intCode[pars[0].Value] = a;
-
-            return cursor + 2; 
-        }
-
-        public static readonly Dictionary<int, Operator> Ops
-            = new Dictionary<int, Operator>
-        {
-            { 1, new Operator(Instructions.ADD, 3, new opMethod(Sum)) },
-            { 2, new Operator(Instructions.MULT, 3, new opMethod(Mult)) },
+            { 1, new Operator(Instructions.ADD, 3) },
+            { 2, new Operator(Instructions.MULT, 3) },
             { 3, new Operator(Instructions.INPUT, 1) },
             { 4, new Operator(Instructions.OUTPUT, 1) },
             { 5, new Operator(Instructions.JUMP_IF_TRUE, 2) },
@@ -121,9 +92,16 @@ namespace AdventDay7
 
     class IntCodeParser
     {
-        private List<Parameter> GetParameters(int[] intCode, int cursor, Operator oper, string modes)
+        private List<Parameter> GetParameters(int[] intCode, int cursor, Operator oper, string opCode)
         {
             List<Parameter> pars = new List<Parameter>();
+
+            string modes = "";
+
+            if (intCode[cursor].ToString().Length > 2)
+            {
+                modes = opCode.Substring(0, opCode.Length - 2);
+            }
 
             for (int i = 0; i < oper.ParamCount; i++)
             {
@@ -142,31 +120,35 @@ namespace AdventDay7
 
             return pars;
         }
+
+        private Operator GetOperator(string opCode)
+        {
+            if (opCode.Length > 2)
+            {
+                return Operators.Ops[int.Parse(opCode.Substring(opCode.Length - 2))];
+            }
+
+            return Operators.Ops[int.Parse(opCode)];
+        }
+
+        private void Input(int[] intCode, List<Parameter> pars)
+        {
+            System.Console.WriteLine("INPUT");
+            string line = Console.ReadLine();
+            int a = int.Parse(line);
+            System.Console.WriteLine("YOU GAVE {0}", a);
+            intCode[pars[0].Value] = a;
+        }
+
         public int ProcessIntCode(int[] intCode, int cursor)
         {
-            int opCode = intCode[cursor];
-
-            string opInstruction = opCode.ToString();
-            int instr;
-            string modes = "";
-
-            if (opInstruction.Length == 1)
-            {
-                instr = int.Parse(opInstruction);
-            }
-            else
-            {
-                instr = int.Parse(opInstruction.Substring(opInstruction.Length - 2));
-                modes = opInstruction.Substring(0, opInstruction.Length - 2);
-            }
-
-            Operator oper = Operators.Ops[instr];
-
-            List<Parameter> pars = GetParameters(intCode, cursor, oper, modes);
+            string opCode = intCode[cursor].ToString();
+            Operator oper = GetOperator(opCode);
+            List<Parameter> pars = GetParameters(intCode, cursor, oper, opCode);
 
             int newCursorPos = cursor + oper.ParamCount + 1;
 
-            switch (instruction)
+            switch (oper.Instruction)
             {
                 case Instructions.ADD:
                     intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
@@ -175,11 +157,7 @@ namespace AdventDay7
                     intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
                     break;
                 case Instructions.INPUT:
-                    System.Console.WriteLine("INPUT");
-                    string line = Console.ReadLine();
-                    int a = int.Parse(line);
-                    System.Console.WriteLine("YOU GAVE {0}", a);
-                    intCode[pars[0].Value] = a;
+                    Input(intCode, pars);
                     break;
                 case Instructions.OUTPUT:
                     System.Console.WriteLine("OUTPUT {0}", pars[0].GetResult(intCode));
@@ -220,9 +198,6 @@ namespace AdventDay7
                 case Instructions.HALT:
                     System.Console.WriteLine("HALT");
                     return intCode[0];
-                    break;
-                case Instructions.ERROR:
-                    return -999;
             }
 
             return ProcessIntCode(intCode, newCursorPos);
