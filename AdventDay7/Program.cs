@@ -135,7 +135,7 @@ namespace AdventDay7
             return Operators.Ops[int.Parse(opCode)];
         }
 
-        public virtual void InputCommand(List<Parameter> pars)
+        protected virtual void InputCommand(List<Parameter> pars)
         {
             System.Console.WriteLine("INPUT");
             string line = Console.ReadLine();
@@ -144,7 +144,7 @@ namespace AdventDay7
             _intCode[pars[0].Value] = a;
         }
 
-        public virtual void OutputCommand(List<Parameter> pars)
+        protected virtual void OutputCommand(List<Parameter> pars)
         {
             LastOutput = pars[0].GetResult(_intCode);
         }
@@ -219,18 +219,15 @@ namespace AdventDay7
 
     class IntCodeParserSetInput : IntCodeParser 
     {
-        int inputAddress;
-        List<int> Inputs;
-        public override void InputCommand(List<Parameter> pars)
+        public Stack<int> Inputs;
+        protected override void InputCommand(List<Parameter> pars)
         {
-            int input = Inputs[inputAddress];
+            int input = Inputs.Pop();
             _intCode[pars[0].Value] = input;
-            inputAddress++;
         }
 
-        public int Process(List<int> inputs)
+        public int Process(Stack<int> inputs)
         {
-            inputAddress = 0;
             Inputs = inputs;
             return ProcessIntCode(0);
         }
@@ -240,15 +237,28 @@ namespace AdventDay7
         }
     }
 
+    class IntCodeParserLooper : IntCodeParserSetInput
+    {
+        public IntCodeParserLooper(int[] intCode) : base(intCode)
+        {
+        }
+
+        protected override void OutputCommand(List<Parameter> pars)
+        {
+            LastOutput = pars[0].GetResult(_intCode);
+            Inputs.Push(LastOutput);
+        }
+    }
+
     class Amplifier
     {
-        public List<int> Inputs;
+        public Stack<int> Inputs;
 
-        public List<int> GetInputs ()
+        public Stack<int> GetInputs ()
         {
             return Inputs;
         }
-        public Amplifier(List<int> inputs)
+        public Amplifier(Stack<int> inputs)
         {
             Inputs = inputs;
         }
@@ -256,12 +266,8 @@ namespace AdventDay7
 
     class NoLooper
     {
-        private int[] _intCode;
-
         public void Process(int[] intCode)
         {
-            _intCode = intCode;
-
             int? highest = null;
             string combo = "";
 
@@ -275,7 +281,10 @@ namespace AdventDay7
                 int input = 0;
                 foreach (char setting in settings)
                 {
-                    Amplifier amp = new Amplifier(new List<int> { int.Parse(setting.ToString()), input });
+                    Stack<int> inputs = new Stack<int>();
+                    inputs.Push(input);
+                    inputs.Push(int.Parse(setting.ToString()));
+                    Amplifier amp = new Amplifier(inputs);
                     input = parser.Process(amp.GetInputs());
                 }
 
@@ -292,11 +301,36 @@ namespace AdventDay7
 
     class Looper
     {
-        private int[] _intCode;
-
         public void Process(int[] intCode)
         {
-            _intCode = intCode;
+            int? highest = null;
+            string combo = "";
+
+            List<string> settingsCollection = Permutations.GetPermutations("56789");
+            IntCodeParserLooper parser = new IntCodeParserLooper(intCode);
+
+            foreach (string settings in settingsCollection)
+            {
+                List<Amplifier> amplifiers = new List<Amplifier>();
+
+                int input = 0;
+                foreach (char setting in settings)
+                {
+                    Stack<int> inputs = new Stack<int>();
+                    inputs.Push(input);
+                    inputs.Push(int.Parse(setting.ToString()));
+                    Amplifier amp = new Amplifier(inputs);
+                    input = parser.Process(amp.GetInputs());
+                }
+
+                if (highest == null || input > highest)
+                {
+                    highest = input;
+                    combo = settings;
+                }
+            }
+
+            Console.WriteLine("{0} made {1}", combo, highest);
         }
     }
 
@@ -316,6 +350,8 @@ namespace AdventDay7
                 NoLooper noLooper = new NoLooper();
                 noLooper.Process(Array.ConvertAll(str.Split(','), int.Parse));
 
+                //Looper looper = new Looper();
+                //looper.Process(Array.ConvertAll(str.Split(','), int.Parse));
 
                 Console.ReadLine();
             }
