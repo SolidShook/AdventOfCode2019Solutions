@@ -95,21 +95,22 @@ namespace AdventDay7
     {
         public int LastOutput;
         protected int[] _intCode;
+        public int Cursor;
 
-        private List<Parameter> GetParameters(int cursor, Operator oper, string opCode)
+        private List<Parameter> GetParameters(Operator oper, string opCode)
         {
             List<Parameter> pars = new List<Parameter>();
 
             string modes = "";
 
-            if (_intCode[cursor].ToString().Length > 2)
+            if (_intCode[Cursor].ToString().Length > 2)
             {
                 modes = opCode.Substring(0, opCode.Length - 2);
             }
 
             for (int i = 0; i < oper.ParamCount; i++)
             {
-                pars.Add(new Parameter(_intCode[cursor + i + 1]));
+                pars.Add(new Parameter(_intCode[Cursor + i + 1]));
             }
 
             if (modes != "")
@@ -151,11 +152,12 @@ namespace AdventDay7
 
         public int ProcessIntCode(int cursor)
         {
-            string opCode = _intCode[cursor].ToString();
+            Cursor = cursor;
+            string opCode = _intCode[Cursor].ToString();
             Operator oper = GetOperator(opCode);
-            List<Parameter> pars = GetParameters(cursor, oper, opCode);
+            List<Parameter> pars = GetParameters(oper, opCode);
 
-            int newCursorPos = cursor + oper.ParamCount + 1;
+            int newCursorPos = Cursor + oper.ParamCount + 1;
 
             switch (oper.Instruction)
             {
@@ -253,12 +255,18 @@ namespace AdventDay7
     class Amplifier
     {
         public Stack<int> Inputs;
+        public int[] IntCode;
 
         public Stack<int> GetInputs ()
         {
             return Inputs;
         }
         public Amplifier(Stack<int> inputs)
+        {
+            Inputs = inputs;
+        }
+
+        public Amplifier(Stack<int> inputs, int[] IntCode)
         {
             Inputs = inputs;
         }
