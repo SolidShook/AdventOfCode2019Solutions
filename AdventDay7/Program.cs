@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace AdventDay7
@@ -209,6 +210,11 @@ namespace AdventDay7
 
             return ProcessIntCode(newCursorPos);
         }
+
+        public IntCodeParser(int[] intCode)
+        {
+            _intCode = intCode;
+        }
     }
 
     class IntCodeParserSetInput : IntCodeParser 
@@ -222,37 +228,78 @@ namespace AdventDay7
             inputAddress++;
         }
 
-        public int Process(int[] intCode, List<int> inputs)
+        public int Process(List<int> inputs)
         {
-            _intCode = intCode;
             inputAddress = 0;
             Inputs = inputs;
             return ProcessIntCode(0);
         }
+
+        public IntCodeParserSetInput(int[] intCode) : base(intCode)
+        {
+        }
     }
 
-    class Looper : IntCodeParserSetInput
-    {
-        //public override void OutputCommand()
-        //{
-
-        //}
-    }
     class Amplifier
     {
-        public int PhaseSetting;
-        public int Input;
+        public List<int> Inputs;
 
         public List<int> GetInputs ()
         {
-            return new List<int> { PhaseSetting, Input };
+            return Inputs;
         }
-        public Amplifier(int phaseSetting, int input)
+        public Amplifier(List<int> inputs)
         {
-            PhaseSetting = phaseSetting;
-            Input = input;
+            Inputs = inputs;
         }
     }
+
+    class NoLooper
+    {
+        private int[] _intCode;
+
+        public void Process(int[] intCode)
+        {
+            _intCode = intCode;
+
+            int? highest = null;
+            string combo = "";
+
+            List<string> settingsCollection = Permutations.GetPermutations("01234");
+            IntCodeParserSetInput parser = new IntCodeParserSetInput(intCode);
+
+            foreach (string settings in settingsCollection)
+            {
+                List<Amplifier> amplifiers = new List<Amplifier>();
+
+                int input = 0;
+                foreach (char setting in settings)
+                {
+                    Amplifier amp = new Amplifier(new List<int> { int.Parse(setting.ToString()), input });
+                    input = parser.Process(amp.GetInputs());
+                }
+
+                if (highest == null || input > highest)
+                {
+                    highest = input;
+                    combo = settings;
+                }
+            }
+
+            Console.WriteLine("{0} made {1}", combo, highest);
+        }
+    }
+
+    class Looper
+    {
+        private int[] _intCode;
+
+        public void Process(int[] intCode)
+        {
+            _intCode = intCode;
+        }
+    }
+
     class Program
     {
         static void Main()
@@ -266,39 +313,9 @@ namespace AdventDay7
 
             while (true)
             {
-                int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
+                NoLooper noLooper = new NoLooper();
+                noLooper.Process(Array.ConvertAll(str.Split(','), int.Parse));
 
-
-                IntCodeParser defaultParser = new IntCodeParser();
-                IntCodeParserSetInput parser = new IntCodeParserSetInput();
-
-                int? highest = null;
-                string combo = "";
-
-                List<string> settingsCollection = Permutations.GetPermutations("01234");
-
-                foreach(string settings in settingsCollection)
-                {
-                    parser = new IntCodeParserSetInput();
-
-                    List<Amplifier> amplifiers = new List<Amplifier>();
-
-                    int input = 0;
-                    foreach (char setting in settings)
-                    {
-                        Amplifier amp = new Amplifier(int.Parse(setting.ToString()), input);
-
-                        input = parser.Process(intCode, amp.GetInputs());
-                    }
-
-                    if (highest == null || input > highest)
-                    {
-                        highest = input;
-                        combo = settings;
-                    }
-                }
-
-                Console.WriteLine("{0} made {1}", combo, highest);
 
                 Console.ReadLine();
             }
