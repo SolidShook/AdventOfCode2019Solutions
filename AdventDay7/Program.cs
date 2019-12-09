@@ -221,14 +221,14 @@ namespace AdventDay7
 
     class IntCodeParserSetInput : IntCodeParser 
     {
-        public Stack<int> Inputs;
+        public Queue<int> Inputs;
         protected override void InputCommand(List<Parameter> pars)
         {
-            int input = Inputs.Pop();
+            int input = Inputs.Dequeue();
             _intCode[pars[0].Value] = input;
         }
 
-        public int Process(Stack<int> inputs)
+        public int Process(Queue<int> inputs)
         {
             Inputs = inputs;
             return ProcessIntCode(0);
@@ -248,25 +248,19 @@ namespace AdventDay7
         protected override void OutputCommand(List<Parameter> pars)
         {
             LastOutput = pars[0].GetResult(_intCode);
-            Inputs.Push(LastOutput);
+            Inputs.Enqueue(LastOutput);
         }
     }
 
     class Amplifier
     {
-        public Stack<int> Inputs;
-        public int[] IntCode;
+        public Queue<int> Inputs;
 
-        public Stack<int> GetInputs ()
+        public Queue<int> GetInputs ()
         {
             return Inputs;
         }
-        public Amplifier(Stack<int> inputs)
-        {
-            Inputs = inputs;
-        }
-
-        public Amplifier(Stack<int> inputs, int[] IntCode)
+        public Amplifier(Queue<int> inputs)
         {
             Inputs = inputs;
         }
@@ -289,9 +283,9 @@ namespace AdventDay7
                 int input = 0;
                 foreach (char setting in settings)
                 {
-                    Stack<int> inputs = new Stack<int>();
-                    inputs.Push(input);
-                    inputs.Push(int.Parse(setting.ToString()));
+                    Queue<int> inputs = new Queue<int>();
+                    inputs.Enqueue(int.Parse(setting.ToString()));
+                    inputs.Enqueue(input);
                     Amplifier amp = new Amplifier(inputs);
                     input = parser.Process(amp.GetInputs());
                 }
@@ -324,9 +318,9 @@ namespace AdventDay7
                 int input = 0;
                 foreach (char setting in settings)
                 {
-                    Stack<int> inputs = new Stack<int>();
-                    inputs.Push(input);
-                    inputs.Push(int.Parse(setting.ToString()));
+                    Queue<int> inputs = new Queue<int>();
+                    inputs.Enqueue(input);
+                    inputs.Enqueue(int.Parse(setting.ToString()));
                     Amplifier amp = new Amplifier(inputs);
                     input = parser.Process(amp.GetInputs());
                 }
