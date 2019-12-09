@@ -93,20 +93,22 @@ namespace AdventDay7
     class IntCodeParser
     {
         public int LastOutput;
-        private List<Parameter> GetParameters(int[] intCode, int cursor, Operator oper, string opCode)
+        protected int[] _intCode;
+
+        private List<Parameter> GetParameters(int cursor, Operator oper, string opCode)
         {
             List<Parameter> pars = new List<Parameter>();
 
             string modes = "";
 
-            if (intCode[cursor].ToString().Length > 2)
+            if (_intCode[cursor].ToString().Length > 2)
             {
                 modes = opCode.Substring(0, opCode.Length - 2);
             }
 
             for (int i = 0; i < oper.ParamCount; i++)
             {
-                pars.Add(new Parameter(intCode[cursor + i + 1]));
+                pars.Add(new Parameter(_intCode[cursor + i + 1]));
             }
 
             if (modes != "")
@@ -114,7 +116,6 @@ namespace AdventDay7
                 int it = 0;
                 for (int x = modes.Length - 1; x >= 0; x--)
                 {
-                    var test = modes[x] -'0';
                     pars[it].SetMode(modes[x] - '0');
                     it++;
                 }
@@ -133,96 +134,109 @@ namespace AdventDay7
             return Operators.Ops[int.Parse(opCode)];
         }
 
-        protected virtual void InputCommand(int[] intCode, List<Parameter> pars)
+        public virtual void InputCommand(List<Parameter> pars)
         {
             System.Console.WriteLine("INPUT");
             string line = Console.ReadLine();
             int a = int.Parse(line);
             System.Console.WriteLine("YOU GAVE {0}", a);
-            intCode[pars[0].Value] = a;
+            _intCode[pars[0].Value] = a;
         }
 
-        public int ProcessIntCode(int[] intCode, int cursor)
+        public virtual void OutputCommand(List<Parameter> pars)
         {
-            string opCode = intCode[cursor].ToString();
+            LastOutput = pars[0].GetResult(_intCode);
+        }
+
+        public int ProcessIntCode(int cursor)
+        {
+            string opCode = _intCode[cursor].ToString();
             Operator oper = GetOperator(opCode);
-            List<Parameter> pars = GetParameters(intCode, cursor, oper, opCode);
+            List<Parameter> pars = GetParameters(cursor, oper, opCode);
 
             int newCursorPos = cursor + oper.ParamCount + 1;
 
             switch (oper.Instruction)
             {
                 case Instructions.ADD:
-                    intCode[pars[2].Value] = pars[0].GetResult(intCode) + pars[1].GetResult(intCode);
+                    _intCode[pars[2].Value] = pars[0].GetResult(_intCode) + pars[1].GetResult(_intCode);
                     break;
                 case Instructions.MULT:
-                    intCode[pars[2].Value] = pars[0].GetResult(intCode) * pars[1].GetResult(intCode);
+                    _intCode[pars[2].Value] = pars[0].GetResult(_intCode) * pars[1].GetResult(_intCode);
                     break;
                 case Instructions.INPUT:
-                    InputCommand(intCode, pars);
+                    InputCommand(pars);
                     break;
                 case Instructions.OUTPUT:
-                    LastOutput = pars[0].GetResult(intCode);
-                    //System.Console.WriteLine("OUTPUT {0}", LastOutput);
+                    OutputCommand(pars);
+                    LastOutput = pars[0].GetResult(_intCode);
                     break;
                 case Instructions.JUMP_IF_TRUE:
-                    if (pars[0].GetResult(intCode) != 0)
+                    if (pars[0].GetResult(_intCode) != 0)
                     {
-                        newCursorPos = pars[1].GetResult(intCode);
+                        newCursorPos = pars[1].GetResult(_intCode);
                     }
                     break;
                 case Instructions.JUMP_IF_FALSE:
-                    if (pars[0].GetResult(intCode) == 0)
+                    if (pars[0].GetResult(_intCode) == 0)
                     {
-                        newCursorPos = pars[1].GetResult(intCode);
+                        newCursorPos = pars[1].GetResult(_intCode);
                     }
                     break;
                 case Instructions.LESS_THAN:
-                    if (pars[0].GetResult(intCode) < pars[1].GetResult(intCode))
+                    if (pars[0].GetResult(_intCode) < pars[1].GetResult(_intCode))
                     {
-                        intCode[pars[2].Value] = 1;
+                        _intCode[pars[2].Value] = 1;
                     }
                     else
                     {
-                        int test = pars[2].GetResult(intCode);
-                        intCode[pars[2].Value] = 0;
+                        _intCode[pars[2].Value] = 0;
                     }
                     break;
                 case Instructions.EQUALS:
-                    if (pars[0].GetResult(intCode) == pars[1].GetResult(intCode))
+                    if (pars[0].GetResult(_intCode) == pars[1].GetResult(_intCode))
                     {
-                        intCode[pars[2].Value] = 1;
+                        _intCode[pars[2].Value] = 1;
                     }
                     else
                     {
-                        intCode[pars[2].Value] = 0;
+                        _intCode[pars[2].Value] = 0;
                     }
                     break;
                 case Instructions.HALT:
-                    //System.Console.WriteLine("HALT");
                     return LastOutput;
             }
 
-            return ProcessIntCode(intCode, newCursorPos);
+            return ProcessIntCode(newCursorPos);
         }
     }
 
-    class IntCodeParserSetInput : IntCodeParser
+    class IntCodeParserSetInput : IntCodeParser 
     {
         int inputAddress;
         List<int> Inputs;
-        protected override void InputCommand(int[] intCode, List<Parameter> pars)
+        public override void InputCommand(List<Parameter> pars)
         {
-            intCode[pars[0].Value] = Inputs[inputAddress];
+            int input = Inputs[inputAddress];
+            _intCode[pars[0].Value] = input;
             inputAddress++;
         }
 
-        public int process(int[] intCode, List<int> inputs)
+        public int Process(int[] intCode, List<int> inputs)
         {
+            _intCode = intCode;
             inputAddress = 0;
             Inputs = inputs;
-            return ProcessIntCode(intCode, 0);
+            return ProcessIntCode(0);
         }
+    }
+
+    class Looper : IntCodeParserSetInput
+    {
+        //public override void OutputCommand()
+        //{
+
+        //}
     }
     class Amplifier
     {
@@ -274,7 +288,7 @@ namespace AdventDay7
                     {
                         Amplifier amp = new Amplifier(int.Parse(setting.ToString()), input);
 
-                        input = parser.process(intCode, amp.GetInputs());
+                        input = parser.Process(intCode, amp.GetInputs());
                     }
 
                     if (highest == null || input > highest)
