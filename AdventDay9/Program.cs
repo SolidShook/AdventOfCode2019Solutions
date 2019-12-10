@@ -34,7 +34,13 @@ namespace AdventDay9
             test1.ProcessIntCode(true);
             test2.ProcessIntCode(true);
             test3.ProcessIntCode(true);
-            parser.ProcessIntCode(true);
+            Instructions result =  Instructions.Error;
+
+            while (result != Instructions.Halt)
+            {
+                result = parser.ProcessIntCode(false);
+
+            }
 
             Console.ReadLine();
         }
