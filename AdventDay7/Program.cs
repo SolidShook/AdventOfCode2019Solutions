@@ -287,6 +287,7 @@ namespace AdventDay7
                     inputs.Enqueue(int.Parse(setting.ToString()));
                     inputs.Enqueue(input);
                     Amplifier amp = new Amplifier(inputs);
+                    parser.Cursor = 0;
                     input = parser.Process(amp.GetInputs());
                 }
 
