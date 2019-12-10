@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace AdventDay7
 {
+    #region helper tools
     public enum Modes
     {
         Param,
@@ -90,7 +91,9 @@ namespace AdventDay7
             { 99, new Operator(Instructions.HALT, 0) }
         }; 
     }
+    #endregion
 
+    #region intCodeParser
     class IntCodeParser
     {
         public int LastOutput;
@@ -150,7 +153,7 @@ namespace AdventDay7
             LastOutput = pars[0].GetResult(_intCode);
         }
 
-        public int ProcessIntCode()
+        public Instructions ProcessIntCode(bool loop)
         {
             string opCode = _intCode[Cursor].ToString();
             Operator oper = GetOperator(opCode);
@@ -206,10 +209,15 @@ namespace AdventDay7
                     }
                     break;
                 case Instructions.HALT:
-                    return LastOutput;
+                    return oper.Instruction;
             }
 
-            return ProcessIntCode();
+            if (loop)
+            {
+                return ProcessIntCode(loop);
+            }
+
+            else return oper.Instruction;
         }
 
         public IntCodeParser(int[] intCode)
@@ -228,10 +236,10 @@ namespace AdventDay7
             _intCode[pars[0].Value] = input;
         }
 
-        public int Process(Queue<int> inputs)
+        public void Process(Queue<int> inputs)
         {
             Inputs = inputs;
-            return ProcessIntCode();
+            ProcessIntCode(true);
         }
 
         public IntCodeParserSetInput(int[] intCode) : base(intCode)
@@ -241,6 +249,7 @@ namespace AdventDay7
 
     class IntCodeParserLooper : IntCodeParserSetInput
     {
+        public bool Paused = false;
         public IntCodeParserLooper(int[] intCode) : base(intCode)
         {
         }
@@ -248,21 +257,38 @@ namespace AdventDay7
         protected override void OutputCommand(List<Parameter> pars)
         {
             LastOutput = pars[0].GetResult(_intCode);
-            Inputs.Enqueue(LastOutput);
+
+            Paused = true;
         }
     }
+
+    #endregion
 
     class Amplifier
     {
         public Queue<int> Inputs;
-
+        public IntCodeParserLooper Parser;
+        public bool Completed = false;
         public Queue<int> GetInputs ()
         {
             return Inputs;
         }
+
+        public void Continue(int input)
+        {
+            Parser.Paused = false;
+            Inputs.Enqueue(input);
+        }
         public Amplifier(Queue<int> inputs)
         {
             Inputs = inputs;
+        }
+
+        public Amplifier(Queue<int> inputs, int[] intCode)
+        {
+            Inputs = inputs;
+            Parser = new IntCodeParserLooper((int[])intCode.Clone());
+            Parser.Inputs = Inputs;
         }
     }
 
@@ -288,7 +314,8 @@ namespace AdventDay7
                     inputs.Enqueue(input);
                     Amplifier amp = new Amplifier(inputs);
                     parser.Cursor = 0;
-                    input = parser.Process(amp.GetInputs());
+                    parser.Process(amp.GetInputs());
+                    input = parser.LastOutput;
                 }
 
                 if (highest == null || input > highest)
@@ -310,20 +337,42 @@ namespace AdventDay7
             string combo = "";
 
             List<string> settingsCollection = Permutations.GetPermutations("56789");
-            IntCodeParserLooper parser = new IntCodeParserLooper(intCode);
 
             foreach (string settings in settingsCollection)
             {
                 List<Amplifier> amplifiers = new List<Amplifier>();
 
-                int input = 0;
                 foreach (char setting in settings)
                 {
                     Queue<int> inputs = new Queue<int>();
-                    inputs.Enqueue(input);
                     inputs.Enqueue(int.Parse(setting.ToString()));
-                    Amplifier amp = new Amplifier(inputs);
-                    input = parser.Process(amp.GetInputs());
+                    amplifiers.Add(new Amplifier(inputs, intCode));
+                }
+
+
+                int input = 0;
+
+                while (amplifiers[^1].Completed == false)
+                {
+                    foreach (Amplifier amp in amplifiers)
+                    {
+                        amp.Continue(input);
+
+                        while (!amp.Completed && !amp.Parser.Paused)
+                        {
+                            Instructions lastInst = amp.Parser.ProcessIntCode(false);
+
+                            bool done = lastInst == Instructions.HALT;
+                            int x = 0;
+
+                            if (done)
+                            {
+                                amp.Completed = true;
+                            }
+                        }
+
+                        input = amp.Parser.LastOutput;
+                    }
                 }
 
                 if (highest == null || input > highest)
@@ -353,8 +402,8 @@ namespace AdventDay7
                 NoLooper noLooper = new NoLooper();
                 noLooper.Process(Array.ConvertAll(str.Split(','), int.Parse));
 
-                //Looper looper = new Looper();
-                //looper.Process(Array.ConvertAll(str.Split(','), int.Parse));
+                Looper looper = new Looper();
+                looper.Process(Array.ConvertAll(str.Split(','), int.Parse));
 
                 Console.ReadLine();
             }
