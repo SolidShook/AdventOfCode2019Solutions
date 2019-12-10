@@ -150,14 +150,13 @@ namespace AdventDay7
             LastOutput = pars[0].GetResult(_intCode);
         }
 
-        public int ProcessIntCode(int cursor)
+        public int ProcessIntCode()
         {
-            Cursor = cursor;
             string opCode = _intCode[Cursor].ToString();
             Operator oper = GetOperator(opCode);
             List<Parameter> pars = GetParameters(oper, opCode);
 
-            int newCursorPos = Cursor + oper.ParamCount + 1;
+            Cursor += oper.ParamCount + 1;
 
             switch (oper.Instruction)
             {
@@ -177,13 +176,13 @@ namespace AdventDay7
                 case Instructions.JUMP_IF_TRUE:
                     if (pars[0].GetResult(_intCode) != 0)
                     {
-                        newCursorPos = pars[1].GetResult(_intCode);
+                        Cursor = pars[1].GetResult(_intCode);
                     }
                     break;
                 case Instructions.JUMP_IF_FALSE:
                     if (pars[0].GetResult(_intCode) == 0)
                     {
-                        newCursorPos = pars[1].GetResult(_intCode);
+                        Cursor = pars[1].GetResult(_intCode);
                     }
                     break;
                 case Instructions.LESS_THAN:
@@ -210,11 +209,12 @@ namespace AdventDay7
                     return LastOutput;
             }
 
-            return ProcessIntCode(newCursorPos);
+            return ProcessIntCode();
         }
 
         public IntCodeParser(int[] intCode)
         {
+            Cursor = 0;
             _intCode = intCode;
         }
     }
@@ -231,7 +231,7 @@ namespace AdventDay7
         public int Process(Queue<int> inputs)
         {
             Inputs = inputs;
-            return ProcessIntCode(0);
+            return ProcessIntCode();
         }
 
         public IntCodeParserSetInput(int[] intCode) : base(intCode)
