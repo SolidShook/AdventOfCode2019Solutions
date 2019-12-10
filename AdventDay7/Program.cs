@@ -155,8 +155,8 @@ namespace AdventDay7
             string opCode = _intCode[Cursor].ToString();
             Operator oper = GetOperator(opCode);
             List<Parameter> pars = GetParameters(oper, opCode);
-
-            Cursor += oper.ParamCount + 1;
+            int cursorDifference = oper.ParamCount + 1;
+            Cursor += cursorDifference;
 
             switch (oper.Instruction)
             {
