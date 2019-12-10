@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace AdventDay9
 {
@@ -15,7 +16,7 @@ namespace AdventDay9
             file.Close();
 
             int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
-            IntCodeParser parser = new IntCodeParser(intCode);
+            IntCodeParser parser = new IntCodeParser(intCode.ToList());
 
             parser.ProcessIntCode(true);
 

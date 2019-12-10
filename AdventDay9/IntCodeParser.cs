@@ -39,17 +39,70 @@ namespace AdventDay9
         }
     }
 
+    public class IntCode
+    {
+        private List<int> _intCode;
+
+        private void FillToAddress(int address)
+        {
+            if (_intCode.Count < address + 1)
+            {
+                while (_intCode.Count < address + 1)
+                {
+                    _intCode.Add(0);
+                }
+            }
+        }
+
+        public int GetAddress(int address)
+        {
+            FillToAddress(address);
+
+            return _intCode[address];
+        }
+
+        public void SetAddress(int address, int value)
+        {
+            FillToAddress(address);
+
+            _intCode[address] = value;
+        }
+
+        public IntCode(List<int> intCode)
+        {
+            _intCode = intCode;
+        }
+    }
+
+    class Operators
+    {
+        public static readonly Dictionary<int, Operator> Ops = new Dictionary<int, Operator>
+        {
+            { 1, new Operator(Instructions.Add, 3) },
+            { 2, new Operator(Instructions.Mult, 3) },
+            { 3, new Operator(Instructions.Input, 1) },
+            { 4, new Operator(Instructions.Output, 1) },
+            { 5, new Operator(Instructions.JumpIfTrue, 2) },
+            { 6, new Operator(Instructions.JumpIfFalse, 2) },
+            { 7, new Operator(Instructions.LessThan, 3) },
+            { 8, new Operator(Instructions.Equals, 3) },
+            { 9, new Operator(Instructions.SetRel, 1) },
+            { 99, new Operator(Instructions.Halt, 0) }
+        };
+    }
+    #endregion
+
     public class Parameter
     {
         private Modes Mode;
         public int Value;
         public int RelativeBase;
 
-        public int GetResult(int[] intCode)
+        public int GetResult(IntCode intCode)
         {
             if (Mode == Modes.Param)
             {
-                return intCode[Value];
+                return intCode.GetAddress(Value);
             }
 
             if (Mode == Modes.Immed)
@@ -59,7 +112,7 @@ namespace AdventDay9
 
             if (Mode == Modes.Rel)
             {
-                return intCode[Value] + RelativeBase;
+                return RelativeBase + Value;
             }
 
             return -999;
@@ -91,30 +144,11 @@ namespace AdventDay9
         }
     }
 
-    class Operators
-    {
-        public static readonly Dictionary<int, Operator> Ops = new Dictionary<int, Operator>
-        {
-            { 1, new Operator(Instructions.Add, 3) },
-            { 2, new Operator(Instructions.Mult, 3) },
-            { 3, new Operator(Instructions.Input, 1) },
-            { 4, new Operator(Instructions.Output, 1) },
-            { 5, new Operator(Instructions.JumpIfTrue, 2) },
-            { 6, new Operator(Instructions.JumpIfFalse, 2) },
-            { 7, new Operator(Instructions.LessThan, 3) },
-            { 8, new Operator(Instructions.Equals, 3) },
-            { 9, new Operator(Instructions.SetRel, 1) },
-            { 99, new Operator(Instructions.Halt, 0) }
-        };
-    }
-    #endregion
-
-
     #region intCodeParser
     class IntCodeParser
     {
         public int LastOutput;
-        protected int[] IntCode;
+        protected IntCode IntC;
         public int Cursor;
         public int RelativeBase;
 
@@ -124,14 +158,14 @@ namespace AdventDay9
 
             string modes = "";
 
-            if (IntCode[Cursor].ToString().Length > 2)
+            if (IntC.GetAddress(Cursor).ToString().Length > 2)
             {
                 modes = opCode.Substring(0, opCode.Length - 2);
             }
 
             for (int i = 0; i < oper.ParamCount; i++)
             {
-                pars.Add(new Parameter(IntCode[Cursor + i + 1], RelativeBase));
+                pars.Add(new Parameter(IntC.GetAddress(Cursor + i + 1), RelativeBase));
             }
 
             if (modes != "")
@@ -163,17 +197,18 @@ namespace AdventDay9
             string line = Console.ReadLine();
             int a = int.Parse(line);
             System.Console.WriteLine("YOU GAVE {0}", a);
-            IntCode[pars[0].Value] = a;
+            IntC.SetAddress(pars[0].Value, a);
         }
 
         protected virtual void OutputCommand(List<Parameter> pars)
         {
-            LastOutput = pars[0].GetResult(IntCode);
+            Console.WriteLine(pars[0].GetResult(IntC));
+            LastOutput = pars[0].GetResult(IntC);
         }
 
         public Instructions ProcessIntCode(bool loop)
         {
-            string opCode = IntCode[Cursor].ToString();
+            string opCode = IntC.GetAddress(Cursor).ToString();
             Operator oper = GetOperator(opCode);
             List<Parameter> pars = GetParameters(oper, opCode);
             int cursorDifference = oper.ParamCount + 1;
@@ -182,52 +217,51 @@ namespace AdventDay9
             switch (oper.Instruction)
             {
                 case Instructions.Add:
-                    IntCode[pars[2].Value] = pars[0].GetResult(IntCode) + pars[1].GetResult(IntCode);
+                    IntC.SetAddress(pars[2].Value, pars[0].GetResult(IntC) + pars[1].GetResult(IntC));
                     break;
                 case Instructions.Mult:
-                    IntCode[pars[2].Value] = pars[0].GetResult(IntCode) * pars[1].GetResult(IntCode);
+                    IntC.SetAddress(pars[2].Value, pars[0].GetResult(IntC) * pars[1].GetResult(IntC));
                     break;
                 case Instructions.Input:
                     InputCommand(pars);
                     break;
                 case Instructions.Output:
                     OutputCommand(pars);
-                    LastOutput = pars[0].GetResult(IntCode);
                     break;
                 case Instructions.JumpIfTrue:
-                    if (pars[0].GetResult(IntCode) != 0)
+                    if (pars[0].GetResult(IntC) != 0)
                     {
-                        Cursor = pars[1].GetResult(IntCode);
+                        Cursor = pars[1].GetResult(IntC);
                     }
                     break;
                 case Instructions.JumpIfFalse:
-                    if (pars[0].GetResult(IntCode) == 0)
+                    if (pars[0].GetResult(IntC) == 0)
                     {
-                        Cursor = pars[1].GetResult(IntCode);
+                        Cursor = pars[1].GetResult(IntC);
                     }
                     break;
                 case Instructions.LessThan:
-                    if (pars[0].GetResult(IntCode) < pars[1].GetResult(IntCode))
+                    if (pars[0].GetResult(IntC) < pars[1].GetResult(IntC))
                     {
-                        IntCode[pars[2].Value] = 1;
+                        IntC.SetAddress(pars[2].Value, 1);
                     }
                     else
                     {
-                        IntCode[pars[2].Value] = 0;
+                        IntC.SetAddress(pars[2].Value, 0);
                     }
                     break;
                 case Instructions.Equals:
-                    if (pars[0].GetResult(IntCode) == pars[1].GetResult(IntCode))
+                    if (pars[0].GetResult(IntC) == pars[1].GetResult(IntC))
                     {
-                        IntCode[pars[2].Value] = 1;
+                        IntC.SetAddress(pars[2].Value, 1);
                     }
                     else
                     {
-                        IntCode[pars[2].Value] = 0;
+                        IntC.SetAddress(pars[2].Value, 0);
                     }
                     break;
                 case Instructions.SetRel:
-                    RelativeBase = pars[0].GetResult(IntCode);
+                    RelativeBase = pars[0].GetResult(IntC);
                     break;
                 case Instructions.Halt:
                     return oper.Instruction;
@@ -241,10 +275,10 @@ namespace AdventDay9
             else return oper.Instruction;
         }
 
-        public IntCodeParser(int[] intCode)
+        public IntCodeParser(List<int> intCode)
         {
             Cursor = 0;
-            IntCode = intCode;
+            IntC = new IntCode(new List<int>(intCode));
         }
     }
 
@@ -254,7 +288,7 @@ namespace AdventDay9
         protected override void InputCommand(List<Parameter> pars)
         {
             int input = Inputs.Dequeue();
-            IntCode[pars[0].Value] = input;
+            IntC.SetAddress(pars[0].Value, input);
         }
 
         public void Process(Queue<int> inputs)
@@ -263,7 +297,7 @@ namespace AdventDay9
             ProcessIntCode(true);
         }
 
-        public IntCodeParserSetInput(int[] intCode) : base(intCode)
+        public IntCodeParserSetInput(List<int> intC) : base(intC)
         {
         }
     }
@@ -271,13 +305,13 @@ namespace AdventDay9
     class IntCodeParserLooper : IntCodeParserSetInput
     {
         public bool Paused = false;
-        public IntCodeParserLooper(int[] intCode) : base(intCode)
+        public IntCodeParserLooper(List<int> intC) : base(intC)
         {
         }
 
         protected override void OutputCommand(List<Parameter> pars)
         {
-            LastOutput = pars[0].GetResult(IntCode);
+            LastOutput = pars[0].GetResult(IntC);
 
             Paused = true;
         }
