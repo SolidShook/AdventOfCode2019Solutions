@@ -24,11 +24,11 @@ namespace AdventDay9
             Console.WriteLine("Hello World!");
 
 
-            IntCodeParser test1 = new IntCodeParser(GetBigInts("../../../test1.txt"));
-            IntCodeParser test2 = new IntCodeParser(GetBigInts("../../../test2.txt"));
-            IntCodeParser test3 = new IntCodeParser(GetBigInts("../../../test3.txt"));
+            IntCodeProcessor test1 = new IntCodeProcessor(GetBigInts("../../../test1.txt"));
+            IntCodeProcessor test2 = new IntCodeProcessor(GetBigInts("../../../test2.txt"));
+            IntCodeProcessor test3 = new IntCodeProcessor(GetBigInts("../../../test3.txt"));
 
-            IntCodeParser parser = new IntCodeParser(GetBigInts("../../../data.txt"));
+            IntCodeProcessor processor = new IntCodeProcessor(GetBigInts("../../../data.txt"));
 
 
             test1.ProcessIntCode(true);
@@ -38,7 +38,7 @@ namespace AdventDay9
 
             while (result != Instructions.Halt)
             {
-                result = parser.ProcessIntCode(false);
+                result = processor.ProcessIntCode(false);
 
             }
 

@@ -161,8 +161,8 @@ namespace AdventDay9
     }
 
 
-    #region intCodeParser
-    class IntCodeParser
+    #region intCodeComputer
+    class IntCodeProcessor
     {
         public BigInteger LastOutput;
         protected IntCode IntC;
@@ -300,14 +300,14 @@ namespace AdventDay9
             else return oper.Instruction;
         }
 
-        public IntCodeParser(List<BigInteger> intCode)
+        public IntCodeProcessor(List<BigInteger> intCode)
         {
             Cursor = 0;
             IntC = new IntCode(new List<BigInteger>(intCode));
         }
     }
 
-    class IntCodeParserSetInput : IntCodeParser
+    class IntCodeProcessorSetInput : IntCodeProcessor
     {
         public Queue<int> Inputs;
         protected override void InputCommand(List<Parameter> pars)
@@ -322,15 +322,15 @@ namespace AdventDay9
             ProcessIntCode(true);
         }
 
-        public IntCodeParserSetInput(List<BigInteger> intC) : base(intC)
+        public IntCodeProcessorSetInput(List<BigInteger> intC) : base(intC)
         {
         }
     }
 
-    class IntCodeParserLooper : IntCodeParserSetInput
+    class IntCodeProcessorLooper : IntCodeProcessorSetInput
     {
         public bool Paused = false;
-        public IntCodeParserLooper(List<BigInteger> intC) : base(intC)
+        public IntCodeProcessorLooper(List<BigInteger> intC) : base(intC)
         {
         }
 
