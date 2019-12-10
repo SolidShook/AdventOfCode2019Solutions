@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Numerics;
 namespace AdventDay9
@@ -7,9 +8,9 @@ namespace AdventDay9
     #region constants
     public enum Modes
     {
-        Param,
-        Immed,
-        Rel
+        Param = 0,
+        Immed = 1,
+        Rel = 2
     }
 
     enum Instructions
@@ -58,6 +59,71 @@ namespace AdventDay9
         }
     }
 
+    public class Parameter
+    {
+        private Modes Mode;
+        public BigInteger Value;
+        public int RelativeBase;
+
+        public BigInteger GetResult(IntCode intCode)
+        {
+            if (Mode == Modes.Param)
+            {
+                return intCode.GetAddress(Value);
+            }
+
+            if (Mode == Modes.Immed)
+            {
+                return Value;
+            }
+
+            if (Mode == Modes.Rel)
+            {
+                int newAddress = RelativeBase + (int)Value;
+                return intCode.GetAddress(RelativeBase + Value);
+            }
+
+            return -999;
+        }
+
+        public BigInteger GetLiteral(IntCode intCode)
+        {
+            if (Mode == Modes.Param || Mode == Modes.Immed)
+            {
+                return Value;
+            }
+            else
+            {
+                return RelativeBase + Value;
+            }
+        }
+
+        public void SetMode(int mode)
+        {
+            Mode = (Modes)mode;
+        }
+
+        public Parameter(Modes mode, BigInteger value, int relativeBase)
+        {
+            Mode = mode;
+            Value = value;
+            RelativeBase = relativeBase;
+        }
+
+        public Parameter(Modes mode, int value)
+        {
+            Mode = mode;
+            Value = value;
+        }
+
+        public Parameter(BigInteger value, int relativeBase)
+        {
+            Mode = Modes.Param;
+            Value = value;
+            RelativeBase = relativeBase;
+        }
+    }
+
     public class IntCode
     {
         private List<BigInteger> _intCode;
@@ -80,11 +146,12 @@ namespace AdventDay9
             return _intCode[(int)address];
         }
 
-        public void SetAddress(BigInteger address, BigInteger value)
+        public void SetAddress(Parameter target, BigInteger value)
         {
+            int address = (int)target.GetLiteral(this);
             FillToAddress(address);
 
-            _intCode[(int)address] = value;
+            _intCode[address] = value;
         }
 
         public IntCode(List<BigInteger> intCode)
@@ -93,57 +160,6 @@ namespace AdventDay9
         }
     }
 
-    public class Parameter
-    {
-        private Modes Mode;
-        public BigInteger Value;
-        public BigInteger RelativeBase;
-
-        public BigInteger GetResult(IntCode intCode)
-        {
-            if (Mode == Modes.Param)
-            {
-                return intCode.GetAddress(Value);
-            }
-
-            if (Mode == Modes.Immed)
-            {
-                return Value;
-            }
-
-            if (Mode == Modes.Rel)
-            {
-                return intCode.GetAddress(RelativeBase + Value);
-            }
-
-            return -999;
-        }
-
-        public void SetMode(int mode)
-        {
-            Mode = (Modes)mode;
-        }
-
-        public Parameter(Modes mode, BigInteger value, BigInteger relativeBase)
-        {
-            Mode = mode;
-            Value = value;
-            RelativeBase = relativeBase;
-        }
-
-        public Parameter(Modes mode, int value)
-        {
-            Mode = mode;
-            Value = value;
-        }
-
-        public Parameter(BigInteger value, BigInteger relativeBase)
-        {
-            Mode = Modes.Param;
-            Value = value;
-            RelativeBase = relativeBase;
-        }
-    }
 
     #region intCodeParser
     class IntCodeParser
@@ -151,7 +167,7 @@ namespace AdventDay9
         public BigInteger LastOutput;
         protected IntCode IntC;
         public BigInteger Cursor;
-        public BigInteger RelativeBase;
+        public int RelativeBase;
 
         private List<Parameter> GetParameters(Operator oper, string opCode)
         {
@@ -174,6 +190,13 @@ namespace AdventDay9
                 int it = 0;
                 for (int x = modes.Length - 1; x >= 0; x--)
                 {
+                    int mode = modes[x];
+
+                    if (oper.Instruction == Instructions.Equals)
+                    {
+                        mode = 0;
+                    }
+                    
                     pars[it].SetMode(modes[x] - '0');
                     it++;
                 }
@@ -198,7 +221,7 @@ namespace AdventDay9
             string line = Console.ReadLine();
             int a = int.Parse(line);
             System.Console.WriteLine("YOU GAVE {0}", a);
-            IntC.SetAddress(pars[0].Value, a);
+            IntC.SetAddress(pars[0], a);
         }
 
         protected virtual void OutputCommand(List<Parameter> pars)
@@ -210,6 +233,7 @@ namespace AdventDay9
         public Instructions ProcessIntCode(bool loop)
         {
             string opCode = IntC.GetAddress(Cursor).ToString();
+
             Operator oper = GetOperator(opCode);
             List<Parameter> pars = GetParameters(oper, opCode);
             int cursorDifference = oper.ParamCount + 1;
@@ -218,10 +242,10 @@ namespace AdventDay9
             switch (oper.Instruction)
             {
                 case Instructions.Add:
-                    IntC.SetAddress(pars[2].Value, pars[0].GetResult(IntC) + pars[1].GetResult(IntC));
+                    IntC.SetAddress(pars[2], pars[0].GetResult(IntC) + pars[1].GetResult(IntC));
                     break;
                 case Instructions.Mult:
-                    IntC.SetAddress(pars[2].Value, pars[0].GetResult(IntC) * pars[1].GetResult(IntC));
+                    IntC.SetAddress(pars[2], pars[0].GetResult(IntC) * pars[1].GetResult(IntC));
                     break;
                 case Instructions.Input:
                     InputCommand(pars);
@@ -244,26 +268,25 @@ namespace AdventDay9
                 case Instructions.LessThan:
                     if (pars[0].GetResult(IntC) < pars[1].GetResult(IntC))
                     {
-                        IntC.SetAddress(pars[2].Value, 1);
+                        IntC.SetAddress(pars[2], 1);
                     }
                     else
                     {
-                        IntC.SetAddress(pars[2].Value, 0);
+                        IntC.SetAddress(pars[2], 0);
                     }
                     break;
                 case Instructions.Equals:
                     if (pars[0].GetResult(IntC) == pars[1].GetResult(IntC))
                     {
-                        IntC.SetAddress(pars[2].Value, 1);
+                        IntC.SetAddress(pars[2], 1);
                     }
                     else
                     {
-                        IntC.SetAddress(pars[2].Value, 0);
+                        IntC.SetAddress(pars[2], 0);
                     }
                     break;
                 case Instructions.SetRel:
-                    BigInteger newRelBase = pars[0].GetResult(IntC);
-                    RelativeBase += newRelBase;
+                    RelativeBase += (int)pars[0].GetResult(IntC);
                     break;
                 case Instructions.Halt:
                     return oper.Instruction;
@@ -290,7 +313,7 @@ namespace AdventDay9
         protected override void InputCommand(List<Parameter> pars)
         {
             int input = Inputs.Dequeue();
-            IntC.SetAddress(pars[0].Value, input);
+            IntC.SetAddress(pars[0], input);
         }
 
         public void Process(Queue<int> inputs)
