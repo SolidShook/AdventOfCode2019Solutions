@@ -362,10 +362,7 @@ namespace AdventDay7
                         {
                             Instructions lastInst = amp.Parser.ProcessIntCode(false);
 
-                            bool done = lastInst == Instructions.HALT;
-                            int x = 0;
-
-                            if (done)
+                            if (lastInst == Instructions.HALT)
                             {
                                 amp.Completed = true;
                             }
