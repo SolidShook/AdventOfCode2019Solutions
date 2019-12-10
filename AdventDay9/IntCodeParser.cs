@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AdventDay9
 {
-    #region helper tools
+    #region constants
     public enum Modes
     {
         Param,
@@ -26,6 +26,25 @@ namespace AdventDay9
         Halt,
         Error
     }
+
+    class Operators
+    {
+        public static readonly Dictionary<int, Operator> Ops = new Dictionary<int, Operator>
+        {
+            { 1, new Operator(Instructions.Add, 3) },
+            { 2, new Operator(Instructions.Mult, 3) },
+            { 3, new Operator(Instructions.Input, 1) },
+            { 4, new Operator(Instructions.Output, 1) },
+            { 5, new Operator(Instructions.JumpIfTrue, 2) },
+            { 6, new Operator(Instructions.JumpIfFalse, 2) },
+            { 7, new Operator(Instructions.LessThan, 3) },
+            { 8, new Operator(Instructions.Equals, 3) },
+            { 9, new Operator(Instructions.SetRel, 1) },
+            { 99, new Operator(Instructions.Halt, 0) }
+        };
+    }
+    #endregion
+
 
     class Operator
     {
@@ -74,24 +93,6 @@ namespace AdventDay9
         }
     }
 
-    class Operators
-    {
-        public static readonly Dictionary<int, Operator> Ops = new Dictionary<int, Operator>
-        {
-            { 1, new Operator(Instructions.Add, 3) },
-            { 2, new Operator(Instructions.Mult, 3) },
-            { 3, new Operator(Instructions.Input, 1) },
-            { 4, new Operator(Instructions.Output, 1) },
-            { 5, new Operator(Instructions.JumpIfTrue, 2) },
-            { 6, new Operator(Instructions.JumpIfFalse, 2) },
-            { 7, new Operator(Instructions.LessThan, 3) },
-            { 8, new Operator(Instructions.Equals, 3) },
-            { 9, new Operator(Instructions.SetRel, 1) },
-            { 99, new Operator(Instructions.Halt, 0) }
-        };
-    }
-    #endregion
-
     public class Parameter
     {
         private Modes Mode;
@@ -112,7 +113,7 @@ namespace AdventDay9
 
             if (Mode == Modes.Rel)
             {
-                return RelativeBase + Value;
+                return intCode.GetAddress(RelativeBase + Value);
             }
 
             return -999;
@@ -261,7 +262,8 @@ namespace AdventDay9
                     }
                     break;
                 case Instructions.SetRel:
-                    RelativeBase = pars[0].GetResult(IntC);
+                    int newRelBase = pars[0].GetResult(IntC);
+                    RelativeBase += newRelBase;
                     break;
                 case Instructions.Halt:
                     return oper.Instruction;
