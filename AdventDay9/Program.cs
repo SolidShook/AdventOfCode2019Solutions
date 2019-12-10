@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace AdventDay9
 {
@@ -14,9 +16,10 @@ namespace AdventDay9
 
             string str = file.ReadToEnd();
             file.Close();
+            string[] rawIntCode = str.Split(',');
+            List<BigInteger> bigInts = rawIntCode.Select(val => BigInteger.Parse(val)).ToList();
 
-            int[] intCode = Array.ConvertAll(str.Split(','), int.Parse);
-            IntCodeParser parser = new IntCodeParser(intCode.ToList());
+            IntCodeParser parser = new IntCodeParser(bigInts);
 
             parser.ProcessIntCode(true);
 

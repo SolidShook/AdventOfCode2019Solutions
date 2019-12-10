@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
+using System.Numerics;
 namespace AdventDay9
 {
     #region constants
@@ -60,9 +60,9 @@ namespace AdventDay9
 
     public class IntCode
     {
-        private List<int> _intCode;
+        private List<BigInteger> _intCode;
 
-        private void FillToAddress(int address)
+        private void FillToAddress(BigInteger address)
         {
             if (_intCode.Count < address + 1)
             {
@@ -73,21 +73,21 @@ namespace AdventDay9
             }
         }
 
-        public int GetAddress(int address)
+        public BigInteger GetAddress(BigInteger address)
         {
             FillToAddress(address);
 
-            return _intCode[address];
+            return _intCode[(int)address];
         }
 
-        public void SetAddress(int address, int value)
+        public void SetAddress(BigInteger address, BigInteger value)
         {
             FillToAddress(address);
 
-            _intCode[address] = value;
+            _intCode[(int)address] = value;
         }
 
-        public IntCode(List<int> intCode)
+        public IntCode(List<BigInteger> intCode)
         {
             _intCode = intCode;
         }
@@ -96,10 +96,10 @@ namespace AdventDay9
     public class Parameter
     {
         private Modes Mode;
-        public int Value;
-        public int RelativeBase;
+        public BigInteger Value;
+        public BigInteger RelativeBase;
 
-        public int GetResult(IntCode intCode)
+        public BigInteger GetResult(IntCode intCode)
         {
             if (Mode == Modes.Param)
             {
@@ -124,7 +124,7 @@ namespace AdventDay9
             Mode = (Modes)mode;
         }
 
-        public Parameter(Modes mode, int value, int relativeBase)
+        public Parameter(Modes mode, BigInteger value, BigInteger relativeBase)
         {
             Mode = mode;
             Value = value;
@@ -137,7 +137,7 @@ namespace AdventDay9
             Value = value;
         }
 
-        public Parameter(int value, int relativeBase)
+        public Parameter(BigInteger value, BigInteger relativeBase)
         {
             Mode = Modes.Param;
             Value = value;
@@ -148,10 +148,10 @@ namespace AdventDay9
     #region intCodeParser
     class IntCodeParser
     {
-        public int LastOutput;
+        public BigInteger LastOutput;
         protected IntCode IntC;
-        public int Cursor;
-        public int RelativeBase;
+        public BigInteger Cursor;
+        public BigInteger RelativeBase;
 
         private List<Parameter> GetParameters(Operator oper, string opCode)
         {
@@ -262,7 +262,7 @@ namespace AdventDay9
                     }
                     break;
                 case Instructions.SetRel:
-                    int newRelBase = pars[0].GetResult(IntC);
+                    BigInteger newRelBase = pars[0].GetResult(IntC);
                     RelativeBase += newRelBase;
                     break;
                 case Instructions.Halt:
@@ -277,10 +277,10 @@ namespace AdventDay9
             else return oper.Instruction;
         }
 
-        public IntCodeParser(List<int> intCode)
+        public IntCodeParser(List<BigInteger> intCode)
         {
             Cursor = 0;
-            IntC = new IntCode(new List<int>(intCode));
+            IntC = new IntCode(new List<BigInteger>(intCode));
         }
     }
 
@@ -299,7 +299,7 @@ namespace AdventDay9
             ProcessIntCode(true);
         }
 
-        public IntCodeParserSetInput(List<int> intC) : base(intC)
+        public IntCodeParserSetInput(List<BigInteger> intC) : base(intC)
         {
         }
     }
@@ -307,7 +307,7 @@ namespace AdventDay9
     class IntCodeParserLooper : IntCodeParserSetInput
     {
         public bool Paused = false;
-        public IntCodeParserLooper(List<int> intC) : base(intC)
+        public IntCodeParserLooper(List<BigInteger> intC) : base(intC)
         {
         }
 
