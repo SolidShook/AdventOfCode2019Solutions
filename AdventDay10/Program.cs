@@ -43,6 +43,7 @@ namespace AdventDay10
         public Point Pos;
         public double AngleX;
         public double AngleY;
+        public double Angle;
 
         public override bool Equals(Object obj)
         {
@@ -81,6 +82,8 @@ namespace AdventDay10
 
             AngleX = Math.Round(x / m, 3);
             AngleY = Math.Round(y / m, 3);
+
+            Angle = Math.Atan2(AngleX, AngleY);
         }
     }
     class Map
@@ -101,39 +104,24 @@ namespace AdventDay10
 
             HashSet<Asteroid> asts = new HashSet<Asteroid>();
 
-            //void CheckBoundaries()
-            //{
-            //    for (int y = -dist; y <= dist; y++)
-            //    {
-            //        if (centre.Y + y < 0)
-            //        {
-            //            topReached = true;
-            //            continue;
-            //        }
-            //        else if (centre.Y + y > _map.Count - 1 - centre.Y)
-            //        {
-            //            bottomReached = true;
-            //            continue;
-            //        }
 
-            //        for (int x = -dist; x <= dist; x++)
-            //        {
-            //            int place = centre.Y + y;
-            //            if (centre.X + x < 0)
-            //            {
-            //                leftReached = true;
-            //            } else if (centre.X + x < _map[centre.Y + y].Length - 1 - centre.X)
-            //            {
-            //                rightReached = true;
-            //            }
-            //        }
-            //    }
-            //}
+            //queues of asteroids, ordered by distance;
+            Dictionary<double, Queue<Asteroid>> astCollection = new Dictionary<double, Queue<Asteroid>>();
 
             void AnalyseAsteroid(int localX, int localY)
             {
                 Asteroid ast = new Asteroid(localX, localY);
-                
+
+                if (astCollection.ContainsKey(ast.Angle))
+                {
+                    astCollection[ast.Angle].Enqueue(ast);
+                }
+                else
+                {
+                    Queue<Asteroid> astQ = new Queue<Asteroid>();
+                    astCollection.Add(ast.Angle, astQ);
+                }
+
                 asts.Add(ast);
             }
 
