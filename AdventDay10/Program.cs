@@ -79,8 +79,8 @@ namespace AdventDay10
 
             double m = Math.Sqrt(x * x + y * y);
 
-            AngleX = Math.Round(x / m, 2);
-            AngleY = Math.Round(y / m, 2);
+            AngleX = Math.Round(x / m, 3);
+            AngleY = Math.Round(y / m, 3);
         }
     }
     class Map
@@ -215,8 +215,7 @@ namespace AdventDay10
                 }
             }
 
-
-            int pee = 0;
+            Console.WriteLine("found {0} at postion {1},{2}", mostFound, foundX, foundY);
         }
 
         public Map(string fileAddress)
@@ -231,9 +230,9 @@ namespace AdventDay10
                 _map.Add(line);
             }
 
-            FindBestAsteroid();
-
             file.Close();
+
+            FindBestAsteroid();
         }
     }
 
@@ -243,7 +242,15 @@ namespace AdventDay10
         {
             Console.WriteLine("Hello World!");
 
-            Map testmap = new Map("../../../test1.txt");
+            Map testmap1 = new Map("../../../test1.txt");
+            Map testmap2 = new Map("../../../test2.txt");
+            Map testmap3 = new Map("../../../test3.txt");
+            Map testmap4 = new Map("../../../test4.txt");
+            Map testmap5 = new Map("../../../test5.txt");
+
+            Map answerMap = new Map("../../../data.txt");
+
+            Console.ReadLine();
         }
     }
 }
