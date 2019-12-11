@@ -243,7 +243,7 @@ namespace AdventDay11
             LastOutput = pars[0].GetResult(IntC);
         }
 
-        public Instructions ProcessIntCode(bool loop)
+        public Instructions Step()
         {
             string opCode = IntC.GetAddress(Cursor).ToString();
 
@@ -304,13 +304,8 @@ namespace AdventDay11
                 case Instructions.Halt:
                     return oper.Instruction;
             }
-
-            if (loop)
-            {
-                return ProcessIntCode(loop);
-            }
-
-            else return oper.Instruction;
+            
+            return oper.Instruction;
         }
 
         public IntCodeProcessor(List<BigInteger> intCode)
@@ -322,21 +317,21 @@ namespace AdventDay11
 
     class IntCodeProcessorSetInput : IntCodeProcessor
     {
-        public Queue<int> Inputs;
+        public Queue<BigInteger> Inputs;
         protected override void InputCommand(List<Parameter> pars)
         {
-            int input = Inputs.Dequeue();
+            int input = (int)Inputs.Dequeue();
             IntC.SetAddress(pars[0], input);
         }
 
-        public void Process(Queue<int> inputs)
+        public void AddInput(BigInteger input)
         {
-            Inputs = inputs;
-            ProcessIntCode(true);
+            Inputs.Enqueue(input);
         }
 
         public IntCodeProcessorSetInput(List<BigInteger> intC) : base(intC)
         {
+            Inputs = new Queue<BigInteger>();
         }
     }
 
