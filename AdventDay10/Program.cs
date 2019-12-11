@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using Microsoft.VisualBasic.CompilerServices;
 
 namespace AdventDay10
@@ -41,6 +44,7 @@ namespace AdventDay10
     class Asteroid
     {
         public Point Pos;
+        public Point GlobalPos;
         public double AngleX;
         public double AngleY;
         public double Angle;
@@ -74,16 +78,21 @@ namespace AdventDay10
             return (int) AngleY ^ (int)AngleX;
         }
 
-        public Asteroid(int x, int y)
+        public Asteroid(int x, int y, int globalX, int globalY)
         {
             Pos = new Point(x, y);
+            GlobalPos = new Point(globalX, globalY);
 
             double m = Math.Sqrt(x * x + y * y);
 
             AngleX = Math.Round(x / m, 3);
             AngleY = Math.Round(y / m, 3);
 
-            Angle = Math.Atan2(AngleX, AngleY);
+            Angle = Math.Atan2(AngleX, -AngleY);
+            if (Angle < 0)
+            {
+                Angle += Math.PI * 2;
+            }
         }
     }
     class Map
@@ -96,21 +105,18 @@ namespace AdventDay10
 
         }
 
-        private int ScanAroundAsteroid(Point centre)
+        private SortedDictionary<double, Queue<Asteroid>> ScanAroundAsteroid(Point centre)
         {
             bool leftReached = false, rightReached = false, topReached = false, bottomReached = false;
 
             int dist = 1;
 
-            HashSet<Asteroid> asts = new HashSet<Asteroid>();
+            //queues of asteroids, ordered by angle, and then distance;
+            SortedDictionary<double, Queue<Asteroid>> astCollection = new SortedDictionary<double, Queue<Asteroid>>();
 
-
-            //queues of asteroids, ordered by distance;
-            Dictionary<double, Queue<Asteroid>> astCollection = new Dictionary<double, Queue<Asteroid>>();
-
-            void AnalyseAsteroid(int localX, int localY)
+            void AnalyseAsteroid(int localX, int localY, int globalX, int globalY)
             {
-                Asteroid ast = new Asteroid(localX, localY);
+                Asteroid ast = new Asteroid(localX, localY, globalX, globalY);
 
                 if (astCollection.ContainsKey(ast.Angle))
                 {
@@ -121,8 +127,6 @@ namespace AdventDay10
                     Queue<Asteroid> astQ = new Queue<Asteroid>();
                     astCollection.Add(ast.Angle, astQ);
                 }
-
-                asts.Add(ast);
             }
 
             void CheckPoints()
@@ -164,7 +168,7 @@ namespace AdventDay10
 
                         if (_map[globalY][globalX] == '#')
                         {
-                            AnalyseAsteroid(x, y);
+                            AnalyseAsteroid(x, y, globalX, globalY);
                         }
                     }
                 }
@@ -176,7 +180,37 @@ namespace AdventDay10
                 dist++;
             }
 
-            return asts.Count;
+            return astCollection;
+        }
+
+        public Asteroid SpinLaser(SortedDictionary<double, Queue<Asteroid>> asts, int max)
+        {
+            int counter = 0;
+            Asteroid lastBlast = new Asteroid(0, 0, 0, 0);
+            while (counter < max && asts.Count != 0)
+            {
+                foreach (KeyValuePair<double, Queue<Asteroid>> astP in asts)
+                {
+                    if (counter >= max)
+                    {
+                        break;
+                    }
+                    lastBlast = astP.Value.Dequeue();
+                    counter++;
+                }
+
+                //remove empties
+                foreach (KeyValuePair<double, Queue<Asteroid>> astD in asts.ToList())
+                {
+                    if (astD.Value.Count == 0)
+                        asts.Remove(astD.Key);
+                }
+            }
+
+
+            Console.WriteLine("asteroid {0} destroid at postion {1},{2}", counter, lastBlast.GlobalPos.X, lastBlast.GlobalPos.Y);
+
+            return lastBlast;
         }
 
         public void FindBestAsteroid()
@@ -184,6 +218,7 @@ namespace AdventDay10
             int mostFound = 0;
             int foundX = 0;
             int foundY = 0;
+            SortedDictionary<double, Queue<Asteroid>> foundDict = new SortedDictionary<double, Queue<Asteroid>>();
 
             for (int y = 0; y < _map.Count; y++)
             {
@@ -191,19 +226,22 @@ namespace AdventDay10
                 {
                     if (_map[y][x] == '#')
                     {
-                        int ast = ScanAroundAsteroid(new Point(x, y));
+                        SortedDictionary<double, Queue<Asteroid>> foundDictBuf = ScanAroundAsteroid(new Point(x, y));
                         
-                        if (ast > mostFound)
+                        if (foundDictBuf.Count > mostFound)
                         {
-                            mostFound = ast;
+                            mostFound = foundDictBuf.Count;
                             foundX = x;
                             foundY = y;
+                            foundDict = foundDictBuf;
                         }
                     }
                 }
             }
 
             Console.WriteLine("found {0} at postion {1},{2}", mostFound, foundX, foundY);
+
+            Asteroid answer2 = SpinLaser(foundDict, 200);
         }
 
         public Map(string fileAddress)
