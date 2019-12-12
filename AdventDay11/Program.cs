@@ -22,7 +22,7 @@ namespace AdventDay11
         public Panel(int x, int y)
         {
             Pos = new Point(x, y);
-            Colour = 0;
+            Colour = 1;
         }
 
         public override bool Equals(Object obj)
@@ -46,59 +46,133 @@ namespace AdventDay11
 
     class G
     {
-        public static readonly Dictionary<string, Point> Directions = new Dictionary<string, Point>
+        public enum Directions
         {
-            { "UP", new Point(0, -1)},
-            { "RIGHT", new Point(1, 0)},
-            { "DOWN", new Point(0, 1)},
-            { "LEFT", new Point(-1, 0)},
+            Up,
+            Right,
+            Down,
+            Left
+        }
+
+        public static readonly Dictionary<Directions, Point> DirectionValues = new Dictionary<Directions, Point>
+        {
+            { Directions.Up, new Point(0, -1)},
+            { Directions.Right, new Point(1, 0)},
+            { Directions.Down, new Point(0, 1)},
+            { Directions.Left, new Point(-1, 0)},
         };
     }
     class Robot
     {
         private IntCodeProcessorLooper _cpu;
-        private Dictionary<Point, Panel> _panels;
+        private Dictionary<(int, int), Panel> _panels;
         private Point Pos;
+        private G.Directions Direction;
 
         private void AddPanel(int x, int y)
         {
-            _panels.Add(new Point(x, y), new Panel(x, y));
+            _panels.Add((x, y), new Panel(x, y));
+        }
+
+        private void Move()
+        {
+            Pos.X += G.DirectionValues[Direction].X;
+            Pos.Y += G.DirectionValues[Direction].Y;
+        }
+
+        private void TurnRight()
+        {
+            if ((int) Direction >= G.DirectionValues.Count - 1)
+            {
+                Direction = (G.Directions) 0;
+            }
+            else
+            {
+                Direction = (G.Directions) (int) Direction + 1;
+            }
+
+            Move();
+        }
+
+        private void TurnLeft()
+        {
+            if ((int)Direction  == 0)
+            {
+                Direction = (G.Directions)(int)G.DirectionValues.Count - 1;
+            }
+            else
+            {
+                Direction = (G.Directions)(int)Direction - 1;
+            }
+
+            Move();
         }
 
         public BigInteger GetCurrentPanelColour()
         {
-            BigInteger colour = 55;
-            if (_panels.ContainsKey(new Point(Pos.X, Pos.Y)))
+            if (!_panels.ContainsKey((Pos.X, Pos.Y)))
             {
-                colour = _panels[new Point(Pos.X, Pos.Y)].Colour;
+                AddPanel(Pos.X, Pos.Y);
             }
 
-            return colour;
+            return _panels[(Pos.X, Pos.Y)].Colour;
+        }
+
+        public void Paint(BigInteger value)
+        {
+            if (!_panels.ContainsKey((Pos.X, Pos.Y)))
+            {
+                AddPanel(Pos.X, Pos.Y);
+            }
+
+            _panels[(Pos.X, Pos.Y)].Colour = value;
         }
 
         public void Execute()
         {
             Instructions lastInstruction = new Instructions();
+            bool painted = false;
 
             while (lastInstruction != Instructions.Halt)
             {
-                while (!_cpu.Paused)
+                while (!_cpu.Paused && lastInstruction != Instructions.Halt)
                 {
                     lastInstruction = _cpu.Step();
                 }
 
-                int test = 0;
+                if (!painted)
+                {
+                    Paint(_cpu.LastOutput);
+                    painted = true;
+                }
+                else
+                {
+                    if (_cpu.LastOutput == 1)
+                    {
+                        TurnRight();
+                    }
+                    if (_cpu.LastOutput == 0)
+                    {
+                        TurnLeft();
+                    }
+                    _cpu.AddInput(GetCurrentPanelColour());
+                    painted = false;
+                }
+
+                _cpu.Paused = false;
             }
+
+            Console.WriteLine("Number of Panels {0}", _panels.Count);
 
             int x = 0;
         }
 
         public Robot(List<BigInteger> intCode)
         {
-            _panels = new Dictionary<Point, Panel>();
+            _panels = new Dictionary<(int, int), Panel>();
             Pos = new Point(0,0);
             AddPanel(0, 0);
-
+            Direction = G.Directions.Up;
             _cpu = new IntCodeProcessorLooper(intCode);
             _cpu.AddInput(GetCurrentPanelColour());
         }
