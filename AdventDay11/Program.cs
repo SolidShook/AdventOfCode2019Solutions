@@ -69,6 +69,39 @@ namespace AdventDay11
         private Point Pos;
         private G.Directions Direction;
 
+        List<List<char>> map = new List<List<char>>();
+
+        public void drawPoint(int x, int y, BigInteger value)
+        {
+            while (map.Count - 1 < y)
+            {
+                map.Add(new List<char>());
+            }
+
+            while (map[y].Count - 1 < x)
+            {
+                map[y].Add(' ');
+            }
+
+            char colour = (int) value == 1 ? '#' : ' ';
+            map[y][x] = colour;
+        }
+
+        public void Draw()
+        {
+            foreach (KeyValuePair<(int, int), Panel> entry in _panels)
+            {
+                drawPoint(entry.Key.Item1, entry.Key.Item2, entry.Value.Colour);
+                // do something with entry.Value or entry.Key
+            }
+
+            foreach (List<char> thing in map)
+            {
+                Console.WriteLine(new string(thing.ToArray()));
+            }
+        }
+
+
         private void AddPanel(int x, int y)
         {
             _panels.Add((x, y), new Panel(x, y));
@@ -164,6 +197,7 @@ namespace AdventDay11
 
             Console.WriteLine("Number of Panels {0}", _panels.Count);
 
+            Draw();
             int x = 0;
         }
 
